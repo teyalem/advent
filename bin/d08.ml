@@ -77,7 +77,7 @@ let fix_opt (i: int) (insts: inst array) : inst array option =
     Some new_insts
 
 let main path =
-  let insts = Util.read_lines_from (open_in path)
+  let insts = Util.read_lines (open_in path)
               |> List.map parse_inst
               |> Array.of_list
   in

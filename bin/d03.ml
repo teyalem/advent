@@ -17,7 +17,7 @@ let height = Array.length
 let width map = Array.length map.(0)
 
 let read_map_from file =
-    Util.read_lines_from file
+    Util.read_lines file
     |> List.map (fun line ->
         String.to_seq line
         |> Seq.map of_char

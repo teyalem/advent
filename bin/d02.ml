@@ -28,7 +28,7 @@ let parse_policy_pass rule line =
       (fun a b ch pass -> (rule a b ch), pass)
 
 let read_policy_pass rule file =
-  Util.read_lines_from file
+  Util.read_lines file
   |> List.map (parse_policy_pass rule)
 
 let main path =

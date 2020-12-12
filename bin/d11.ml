@@ -60,7 +60,7 @@ module Map = struct
 
   (* read a map from in_channel. *)
   let read_from_channel ch =
-    let data = Util.read_lines_from ch
+    let data = Util.read_lines ch
                |> List.map (fun s -> String.to_seq s
                                      |> Seq.map Tile.of_char
                                      |> Array.of_seq)

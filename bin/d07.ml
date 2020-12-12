@@ -77,7 +77,7 @@ let rec count_inner_bags (rules: rule list) (bag: colorcode) : int =
        |> List.fold_left (fun p (num, bag) -> p + num * (1 + (count_inner_bags rules bag))) 0
 
 let main path =
-  let rules = Util.read_lines_from (open_in path) |> List.map parse_rule
+  let rules = Util.read_lines (open_in path) |> List.map parse_rule
   in count_inner_bags rules (colorcode "shiny" "gold")
    |> print_int
 (*     |> List.map fst

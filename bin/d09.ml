@@ -62,7 +62,7 @@ let find_list s e l =
   |> List.filter (fun n -> n <= e)
 
 let main path =
-  let numbers = Util.read_lines_from (open_in path)
+  let numbers = Util.read_lines (open_in path)
               |> List.map (int_of_string)
   in
   begin

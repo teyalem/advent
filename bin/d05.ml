@@ -40,7 +40,7 @@ let to_sid (row, col) = row*8 + col
 
 let main path =
   let file = open_in path in
-  Util.read_lines_from file
+  Util.read_lines file
   |> List.map decode
   |> List.map to_seat
   |> List.map (fun (a, b) -> Option.(get a, get b))

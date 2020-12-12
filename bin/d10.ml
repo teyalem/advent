@@ -22,7 +22,7 @@ let count_arranges data =
 let main path =
   (* sorted list of adapters *)
   let data = open_in path
-             |> Util.read_lines_from
+             |> Util.read_lines
              |> List.map int_of_string
              |> List.sort Int.compare
   in

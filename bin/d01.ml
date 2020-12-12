@@ -1,6 +1,6 @@
 (* helper: read number list from in_channel *)
 let read_ints_from file =
-  Util.read_lines_from file
+  Util.read_lines file
   |> List.map int_of_string
 
 (* Part one *)
