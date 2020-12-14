@@ -1,8 +1,8 @@
-(* modular operation that returns only positive values *)
-let posivite_mod x y =
-  let m = x mod y in
+(* wrapping modulo operation, negetive value is turned to value + 360. *)
+let wrap_mod angle =
+  let m = angle mod 360 in
   if m < 0
-  then m + y
+  then m + 360
   else m
 
 let manhattan_distance (x1, y1) (x2, y2) =
@@ -53,8 +53,8 @@ module Ship = struct
     | South, n -> s.y <- s.y - n
     | East, n -> s.x <- s.x + n
     | West, n -> s.x <- s.x - n
-    | Left, n -> s.angle <- posivite_mod (s.angle - n) 360
-    | Right, n -> s.angle <- posivite_mod (s.angle + n) 360
+    | Left, n -> s.angle <- wrap_mod (s.angle - n)
+    | Right, n -> s.angle <- wrap_mod (s.angle + n)
     | Forward, n -> begin
         match s.angle with (* this recursion helps keeping meaning *)
         | 0 -> do_action s (North, n)

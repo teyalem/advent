@@ -18,24 +18,31 @@ let rule_a s e ch = fun pass ->
 let rule_b a b ch = fun pass ->
   let ca = pass.[a-1] = ch
   and cb = pass.[b-1] = ch
-  in not (ca = cb)
-
-(* wrapper *)
-let is_valid pol pass = pol pass
+  in ca <> cb
 
 let parse_policy_pass rule line =
     Scanf.sscanf line "%d-%d %c: %s"
       (fun a b ch pass -> (rule a b ch), pass)
 
-let read_policy_pass rule file =
-  Util.read_lines file
-  |> List.map (parse_policy_pass rule)
-
 let main path =
-  let file = open_in path in
-  read_policy_pass rule_b file
-  |> List.fold_left (fun c (pol, pass) ->
-      c + if is_valid pol pass then 1 else 0) 0
-  |> print_int
- 
+  let data = open_in path |> Util.read_lines in
+  let make_list rule = List.map (parse_policy_pass rule) data in
+  begin
+    (* PART 1 *)
+    make_list rule_a
+    |> List.fold_left
+      (fun c (pol, pass) -> c + if pol pass then 1 else 0)
+      0
+    |> print_int;
+
+    print_newline ();
+
+    (* PART 2 *)
+    make_list rule_b
+    |> List.fold_left
+      (fun c (pol, pass) -> c + if pol pass then 1 else 0)
+      0
+    |> print_int
+  end
+
 let _ = Arg.parse [] main ""
