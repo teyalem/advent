@@ -1,18 +1,16 @@
-type range = int * int
-
-(* test *)
-let contains (s, e) n = s <= n && n <= e
-
 type policy = string -> bool
 type rule = int -> int -> char -> policy
 
+let parse_policy_pass rule line =
+    Scanf.sscanf line "%d-%d %c: %s"
+      (fun a b ch pass -> (rule a b ch), pass)
+
 (* Part 1 *)
 let rule_a s e ch = fun pass ->
-  let count = String.to_seq pass
-              |> Seq.filter ((=) ch)
-              |> Seq.fold_left (fun a _ -> a+1) 0
-  and limit = (s, e)
-  in contains limit count
+  let open Util in
+  let index = String.index pass ch
+  and range = Range.make s e
+  in Range.contains range index
 
 (* Part 2 *)
 let rule_b a b ch = fun pass ->
@@ -20,9 +18,11 @@ let rule_b a b ch = fun pass ->
   and cb = pass.[b-1] = ch
   in ca <> cb
 
-let parse_policy_pass rule line =
-    Scanf.sscanf line "%d-%d %c: %s"
-      (fun a b ch pass -> (rule a b ch), pass)
+(* count valid passwords *)
+let count_valid =
+  List.fold_left
+    (fun c (pol, pass) -> c + if pol pass then 1 else 0)
+    0
 
 let main path =
   let data = open_in path |> Util.read_lines in
@@ -30,18 +30,14 @@ let main path =
   begin
     (* PART 1 *)
     make_list rule_a
-    |> List.fold_left
-      (fun c (pol, pass) -> c + if pol pass then 1 else 0)
-      0
+    |> count_valid
     |> print_int;
 
     print_newline ();
 
     (* PART 2 *)
     make_list rule_b
-    |> List.fold_left
-      (fun c (pol, pass) -> c + if pol pass then 1 else 0)
-      0
+    |> count_valid
     |> print_int
   end
 

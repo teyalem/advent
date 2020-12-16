@@ -1,14 +1,22 @@
-(*
- * FILES
+(* UTILITY MODULES
  *)
 
-let rec read_lines (file: in_channel) : string list =
-  match input_line file with
-  | line -> line::(read_lines file)
-  | exception End_of_file -> []
+(* for file reading *)
+(* TODO: rename *)
+include File
 
-let read_file (file: in_channel) : string =
-  really_input_string file (in_channel_length file)
+(* inclusive range *)
+module Range = struct
+  type t = int * int
+
+  let make s e = s, e
+  let contains (s, e) n = s <= n && n <= e
+
+end
+
+(*
+ * STRING OPERATIONS
+ *)
 
 let split pat str = Str.(split (regexp pat) str)
 
