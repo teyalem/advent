@@ -1,6 +1,7 @@
+open Advent
+
 module Rule = struct
-  open Util.Range
-  type range = Util.Range.t
+  open Range
   type t = range * range
 
   let rule r1 r2 = r1, r2
@@ -23,7 +24,7 @@ module Rules = struct
   type rule = Rule.t
   type t = (string * rule) list
 
-  let parse str = Util.split_line str |> List.map Rule.parse
+  let parse str = Delim.split_line str |> List.map Rule.parse
 
   let check n rules = List.for_all (fun (_, r) -> Rule.check n r) rules
 
@@ -71,7 +72,7 @@ module Ticket = struct
     List.exists (fun n -> Rules.is_all_invalid n rules) t |> not
 
   let parse str =
-    Util.split "," str
+    Delim.split "," str
     |> List.map int_of_string
 
   let print t =
@@ -83,18 +84,18 @@ end
 (* Parsers *)
 
 let parse_my_ticket str =
-  match Util.split_line str with
+  match Delim.split_line str with
   | ["your ticket:"; t] -> Ticket.parse t
   | _ -> assert false
 
 let parse_tickets str =
-  match Util.split_line str with
+  match Delim.split_line str with
   | "nearby tickets:" :: ts -> List.map Ticket.parse ts
   | _ -> assert false
 
 let parse_note str =
   let rules, my_t, nearby_ts =
-    match Util.split "\n\n" str with
+    match Delim.split "\n\n" str with
     | [a; b; c] -> a, b, c
     | _ -> assert false
   in
@@ -107,9 +108,7 @@ let find_invalid_nums rules ticket =
 
 let main path =
   let rules, my_t, nearby_ts =
-    open_in path
-    |> Util.read_file
-    |> parse_note
+    open_in path |> IO.read_file |> parse_note
   in
   begin
     (* PART 1 *)

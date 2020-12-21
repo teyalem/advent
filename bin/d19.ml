@@ -1,33 +1,38 @@
-let (>==) a b =
+open Advent
+
+let (>|) a b =
   match a with
   | Some _ -> a
   | None -> b
 
 module Rule = struct
+  (* rule type *)
   type t = Letter of char
          | List of int list
          | Or of int list * int list
 
+  (* Associative Rule List *)
   type rules = (int * t) list
 
+  (* debug: print rule number and content, as read *)
   let print (n, rule) =
     let open Printf in
     printf "%d:" n;
     match rule with
     | Letter c -> printf " %c\n" c
-
     | List l ->
       List.iter (printf " %d") l;
       print_newline ()
-
     | Or (a, b) -> 
       List.iter (printf " %d") a;
       print_string " |";
       List.iter (printf " %d") b;
       print_newline ()
 
+  (* parse a rule *)
   let parse str =
     let open Scanf in
+    (* turn exceptions to option *)
     let try_s f str =
       match f str with
       | a -> Some a
@@ -38,22 +43,22 @@ module Rule = struct
       try_s (fun str -> sscanf str "\"%c\"" (fun c -> Letter c))
 
     and parse_list str =
-      Util.split " " str
+      Delim.split " " str
       |> List.map int_of_string
       |> fun l -> List l
 
     and parse_or str =
-      match Util.split "|" str with
+      match Delim.split "|" str with
       | [a; b] ->
-        let a = Util.split " " a |> List.map int_of_string
-        and b = Util.split " " b |> List.map int_of_string
+        let a = Delim.split " " a |> List.map int_of_string
+        and b = Delim.split " " b |> List.map int_of_string
         in Some (Or (a, b))
       | _ -> None
     in
 
     sscanf str "%d: %s@!" (fun n s ->
         let rule =
-          match parse_letter s >== parse_or s with
+          match parse_letter s >| parse_or s with
           | Some a -> a
           | None -> parse_list s
         in
@@ -98,18 +103,18 @@ module Rule = struct
 end
 
 let read_rule_msg file =
-  match Util.split "\n\n" file with
+  match Delim.split "\n\n" file with
   | [rules; messages] ->
-    let rules = Util.split_line rules
+    let rules = Delim.split_line rules
                 |> List.map Rule.parse
-    and messages = Util.split_line messages
+    and messages = Delim.split_line messages
     in
     rules, messages
   | _ -> assert false
 
 
 let main path =
-  let rules, messages = open_in path |> Util.read_file |> read_rule_msg in
+  let rules, messages = open_in path |> IO.read_file |> read_rule_msg in
   begin
     (* PART 1 *)
     let rule_0 = Rule.compile 0 rules in

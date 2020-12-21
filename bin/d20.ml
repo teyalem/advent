@@ -1,3 +1,5 @@
+open Advent
+
 (* Graph *)
 module Graph = struct
   type t = (int * int list) list
@@ -156,7 +158,7 @@ module ImageBlock = struct
 
   (* parse a block with number *)
   let parse_with_number str =
-    match Util.split_line str with
+    match Delim.split_line str with
     | [] -> assert false
     | num :: image ->
       let num = Scanf.sscanf num "Tile %d:" (fun n -> n)
@@ -165,7 +167,7 @@ module ImageBlock = struct
 
   (* parse array of blocks *)
   let parse_blocks str =
-    Util.split "\n\n" str
+    Delim.split "\n\n" str
     |> List.map parse_with_number
 
   let get_edges block =
@@ -368,7 +370,7 @@ let mark_matches m mat =
 
 
 let main path =
-  let data = open_in path |> Util.read_file |> ImageBlock.parse_blocks in
+  let data = open_in path |> IO.read_file |> ImageBlock.parse_blocks in
   begin
     (* PART 1 *)
     let graph = ImageBlock.assemble data in

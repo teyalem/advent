@@ -1,3 +1,5 @@
+open Advent
+
 module Tile = struct
   (* kinds of tile *)
   type t = Floor
@@ -46,6 +48,7 @@ module Tile = struct
 
 end
 
+(* Map of Waiting Area *)
 module Map = struct
   open Array
 
@@ -58,13 +61,13 @@ module Map = struct
   (* make an empty (i.e. every tile of the map is Floor) map of given width and height. *)
   let make width height = Array.make_matrix width height Tile.Floor
 
-  (* read a map from in_channel. *)
-  let read_from_channel ch =
-    let data = Util.read_lines ch
-               |> List.map (fun s -> String.to_seq s
-                                     |> Seq.map Tile.of_char
-                                     |> Array.of_seq)
-               |> Array.of_list
+  (* parse a map. *)
+  let parse sl =
+    let data = 
+      sl |> List.map (fun s -> String.to_seq s
+                               |> Seq.map Tile.of_char
+                               |> Array.of_seq)
+      |> Array.of_list
     in
     let width = length data.(0)
     and height = length data
@@ -111,8 +114,7 @@ module Map = struct
 
   (* find first seat that can people see in position x, y.
    * if the end of map is reached, return Floor.
-   * DO NOT USE 0, 0 AS DX, DY BECAUSE THEY CAUSE INFINITE LOOP.
-  *)
+   * DO NOT USE 0, 0 AS DX, DY BECAUSE THEY CAUSE INFINITE LOOP. *)
   let rec find_first_seat map (dx, dy) (x, y) =
     let x = x + dx
     and y = y + dy
@@ -155,11 +157,34 @@ module Map = struct
 end
 
 let main path =
-  let data = open_in path |> Map.read_from_channel in
-  let map = ref data
-  and pmap = ref Map.(make (width data) (height data))
-  in
+  let data = open_in path |> IO.read_lines |> Map.parse in
   begin
+
+    (* PART 1 *)
+    let map = ref data
+    and pmap = ref Map.(make (width data) (height data)) in
+
+    while not (Map.is_stable !map !pmap) do
+      let tmp = Map.update Map.see_part1 Tile.rule_part1 !map in
+      pmap := !map;
+      map := tmp;
+    done;
+
+    let num_occupied_seats = 
+      Array.to_list !map
+      |> Array.concat
+      |> Array.fold_left
+            (fun p n -> if n = Tile.OccupiedSeat then p+1 else p)
+            0
+    in
+    print_int num_occupied_seats;
+
+    print_newline ();
+
+    (* PART 2 *)
+    let map = ref data
+    and pmap = ref Map.(make (width data) (height data)) in
+
     while not (Map.is_stable !map !pmap) do
       let tmp = Map.update Map.see_part2 Tile.rule_part2 !map in
       pmap := !map;
@@ -174,6 +199,7 @@ let main path =
             0)
     in
     print_int num_occupied_seats
+
   end
 
 let _ = Arg.parse [] main ""

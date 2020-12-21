@@ -1,17 +1,10 @@
-let (>>=) a b =
-  match a with
-  | Some _ -> a
-  | None -> b
+open Advent
 
-let rec take_while pf = function
-  | [] -> []
-  | x::xs ->
-    if pf x then x :: take_while pf xs
-    else []
-
+(* Simple predicates *)
 let is_num c = '0' <= c && c <= '9'
-let char_to_num c = Char.(code c - code '0')
 let is_whitespace c = c = ' '
+
+let char_to_num c = Char.(code c - code '0')
 
 module Expr = struct
   type t = Empty
@@ -114,9 +107,7 @@ module Expr = struct
 end
 
 let main path =
-  let data = open_in path
-             |> Util.read_lines
-  in
+  let data = open_in path |> IO.read_lines in
   begin
     (* PART 1 *)
     data

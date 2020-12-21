@@ -1,3 +1,5 @@
+open Advent
+
 (* Conway Cube *)
 module Cube = struct
   type t = Active | Inactive
@@ -116,7 +118,9 @@ module PocketSpace = struct
     ps |> iteri (fun i j k c ->
           let pos = i, j, k in
           let an = count_active_neighs ps pos in
-          updates := (pos, Cube.next an c) :: !updates);
+          let next = Cube.next an c in
+          if next = c then () (* ignore if not changed *)
+          else updates := (pos, next) :: !updates);
     (* update states *)
     List.iter (fun (pos, n) -> set ps pos n) !updates
 
@@ -202,7 +206,9 @@ module PocketSpace4D = struct
             count :=
               !count +
               begin match  get ps (i, j, k, l) with
-                | Cube.Active -> if i = x && j = y && k = z && l = w then 0 else 1
+                | Cube.Active ->
+                  if i = x && j = y && k = z && l = w
+                  then 0 else 1
                 | Cube.Inactive -> 0
                 | exception Invalid_argument _ -> 0
               end
@@ -230,7 +236,9 @@ module PocketSpace4D = struct
     ps |> iteri (fun x y z w c ->
           let pos = x, y, z, w in
           let an = count_active_neighs ps pos in
-          updates := (pos, Cube.next an c) :: !updates);
+          let next = Cube.next an c in
+          if next = c then () (* ignore if not changed *)
+          else updates := (pos, next) :: !updates);
     (* update states *)
     List.iter (fun (pos, n) -> set ps pos n) !updates
 
@@ -264,10 +272,7 @@ let parse_plain sl =
   end
 
 let main path =
-  let data = open_in path
-             |> Util.read_lines
-             |> parse_plain
-  in
+  let data = open_in path |> IO.read_lines |> parse_plain in
   begin
     (* PART 1 *)
     let ps = PocketSpace.initialize 49 data in

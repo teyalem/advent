@@ -1,5 +1,7 @@
+open Advent
+
 let parse_buslist str =
-  Util.split "," str
+  Delim.split "," str
   |> List.filter (fun n -> n <> "x")
   |> List.map int_of_string
 
@@ -13,29 +15,6 @@ let find_earliest_bus start_min buslist =
                             (0, Int.max_int)
   in
   ebus, depart_min - start_min
-
-(*
-let is_bus_depart_at bus min = min mod bus = 0
-
-(* TOO SLOW (O(n^2)) *)
-let find_offseted_departs buslist =
-  let first_bus_min = List.nth buslist 0 |> int_of_string
-  and checkf t =
-    List.tl buslist
-    |> List.mapi (fun i n -> i, n)
-    |> List.for_all (fun (offset, n) ->
-        if n = "x" then true
-        else
-          let n = int_of_string n in
-          is_bus_depart_at n (t + offset))
-  in
-  let seq = Seq.unfold (fun n -> Some (n, n + first_bus_min)) first_bus_min
-            |> Seq.filter checkf
-  in
-  match seq () with
-  | Nil -> assert false
-  | Cons (t, _) -> t
-*)
 
 (* Extended GCD *)
 let rec egcd a b =
@@ -66,7 +45,7 @@ let crt cong =
   |> fun n -> n mod m
 
 let main path =
-  let data = open_in path |> Util.read_lines in
+  let data = open_in path |> IO.read_lines in
   let dpnum = List.nth data 0 |> int_of_string
   and buslist = List.nth data 1 |> parse_buslist
   in
@@ -74,10 +53,11 @@ let main path =
     (* PART 1 *)
     let bus, wait_min = find_earliest_bus dpnum buslist in
     print_int (bus * wait_min);
+
     print_newline ();
 
     (* PART 2 *)
-    let full_buslist = Util.split "," (List.nth data 1) in
+    let full_buslist = Delim.split "," (List.nth data 1) in
     let cong = full_buslist
                |> List.mapi (fun i n -> i, n)
                |> List.filter_map (fun (i, n) ->

@@ -1,3 +1,5 @@
+open Advent
+
 type policy = string -> bool
 type rule = int -> int -> char -> policy
 
@@ -7,7 +9,6 @@ let parse_policy_pass rule line =
 
 (* Part 1 *)
 let rule_a s e ch = fun pass ->
-  let open Util in
   let index = String.index pass ch
   and range = Range.make s e
   in Range.contains range index
@@ -25,7 +26,7 @@ let count_valid =
     0
 
 let main path =
-  let data = open_in path |> Util.read_lines in
+  let data = open_in path |> IO.read_lines in
   let make_list rule = List.map (parse_policy_pass rule) data in
   begin
     (* PART 1 *)
@@ -39,6 +40,7 @@ let main path =
     make_list rule_b
     |> count_valid
     |> print_int
+
   end
 
 let _ = Arg.parse [] main ""

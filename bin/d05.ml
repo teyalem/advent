@@ -1,3 +1,6 @@
+open Advent
+
+(* last row and column *)
 let last_row = 127
 let last_col = 7
 
@@ -39,18 +42,23 @@ let to_seat (row_code, col_code) =
 let to_sid (row, col) = row*8 + col
 
 let main path =
-  let file = open_in path in
-  Util.read_lines file
-  |> List.map decode
-  |> List.map to_seat
-  |> List.map (fun (a, b) -> Option.(get a, get b))
-  |> List.map to_sid
-  |> List.sort Int.compare
-  |> List.fold_left (fun a b ->
-      match a with
-      | Ok a -> Ok a
-      | Error a -> if b = a+2 then Ok (a+1) else Error b) (Error 0)
-  |> Result.get_ok
-  |> print_int
+  let open List in
+  let file = open_in path |> IO.read_lines in
+  begin
+    (* PART 2 *)
+    file
+    |> map decode
+    |> map to_seat
+    |> map (fun (a, b) -> Option.(get a, get b))
+    |> map to_sid
+    |> sort Int.compare
+    |> fold_left (fun a b ->
+        match a with
+        | Ok a -> Ok a
+        | Error a -> if b = a+2 then Ok (a+1) else Error b) (Error 0)
+    |> Result.get_ok
+    |> print_int
+
+  end
 
 let () = Arg.parse [] main ""

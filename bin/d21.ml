@@ -1,3 +1,5 @@
+open Advent
+
 module StringSet = Set.Make(String)
 
 module IAList = struct
@@ -5,11 +7,11 @@ module IAList = struct
 
   let parse_line str =
     let parse_ingredient str =
-      Util.split " " str |> StringSet.of_list
+      Delim.split " " str |> StringSet.of_list
     in
 
     let parse_allergen str =
-      Util.split ", " str |> StringSet.of_list
+      Delim.split ", " str |> StringSet.of_list
     in
 
     Scanf.sscanf str "%s@(contains %s@)"
@@ -76,7 +78,7 @@ module IAList = struct
 end
 
 let main path =
-  let data = open_in path |> Util.read_lines |> IAList.parse_list in
+  let data = open_in path |> IO.read_lines |> IAList.parse_list in
   begin
     (* PART 1*)
     let allergens = IAList.match_allergens data in

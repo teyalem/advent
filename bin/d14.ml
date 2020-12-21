@@ -1,3 +1,5 @@
+open Advent
+
 let starts_with pat str =
   let pat = Str.regexp ("^" ^ pat) in
   Str.string_match pat str 0
@@ -134,7 +136,7 @@ let run_2 mem code =
 
 let main path =
   let data = open_in path
-             |> Util.read_lines
+             |> IO.read_lines
              |> List.map Code.parse
   in
   let mem = Memory.empty in

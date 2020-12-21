@@ -1,3 +1,5 @@
+open Advent
+
 type map_sign = Open | Tree
 
 exception Not_a_sign
@@ -18,7 +20,7 @@ let height = Array.length
 let width map = Array.length map.(0)
 
 let read_map file =
-    Util.read_lines file
+    IO.read_lines file
     |> List.map (fun line ->
         String.to_seq line
         |> Seq.map of_char
@@ -62,6 +64,7 @@ let main path =
       [ 1, 1; 1, 3; 1, 5; 1, 7; 2, 1;]
     |> List.fold_left Int.mul 1
     |> print_int
+
   end
 
 let _ = Arg.parse [] main ""

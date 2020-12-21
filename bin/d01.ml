@@ -1,6 +1,8 @@
+open Advent
+
 (* helper: read number list from in_channel *)
 let read_ints_from file =
-  Util.read_lines file
+  IO.read_lines file
   |> List.map int_of_string
 
 let rec find_sum_2020 = function
@@ -36,6 +38,7 @@ let main path =
     find_sum 2020 3 data
     |> List.fold_left Int.mul 1
     |> print_int
+
   end
 
 let _ = Arg.parse [] main ""

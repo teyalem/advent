@@ -1,3 +1,4 @@
+open Advent
 open Scanf
 
 (* association list *)
@@ -10,9 +11,8 @@ let of_string (str: string) : passport =
     | key, value -> (key, value)::(inner scanner)
   in inner (sscanf str "%s@:%s ")
 
-let read_passports_from file : passport list =
-  let data = Util.read_file file in
-  Util.split "\n\n" data
+let read_passports str : passport list =
+  Delim.split "\n\n" str
   |> List.map of_string
 
 let is_valid_byr year =
@@ -71,10 +71,15 @@ let is_valid passport =
   | _ -> false
 
 let main path =
-  let file = open_in path in
-  read_passports_from file
-  |> List.filter is_valid
-  |> List.length
-  |> print_int
+  let data = open_in path |> IO.read_file |> read_passports in
+  begin
+
+    (* PART 2 *)
+    data
+    |> List.filter is_valid
+    |> List.length
+    |> print_int
+
+  end
 
 let _ = Arg.parse [] main ""

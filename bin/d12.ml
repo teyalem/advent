@@ -1,3 +1,5 @@
+open Advent
+
 (* wrapping modulo operation, negetive value is turned to value + 360. *)
 let wrap_mod angle =
   let m = angle mod 360 in
@@ -5,6 +7,7 @@ let wrap_mod angle =
   then m + 360
   else m
 
+(* Get manhattan distance between two points *)
 let manhattan_distance (x1, y1) (x2, y2) =
   (abs (x2 - x1)) + (abs (y2 -y1))
 
@@ -123,7 +126,7 @@ end
 
 let main path =
   (* data *)
-  let data = open_in path |> Util.read_lines |> List.map Code.parse in
+  let data = open_in path |> IO.read_lines |> List.map Code.parse in
   begin
     (* PART 1 *)
     let ship = Ship.make 90 (* east facing *) in
@@ -138,6 +141,7 @@ let main path =
     List.iter (fun c -> Ship2.do_action ship c) data;
     manhattan_distance (0, 0) (ship.x, ship.y)
     |> print_int
+
   end
 
 let _ = Arg.parse [] main ""

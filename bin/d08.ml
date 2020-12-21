@@ -1,8 +1,11 @@
+open Advent
+
+(* machine state *)
 type mstate = {
   mutable pc: int;
   mutable acc: int;
   visited: bool array;
-} (* machine state *)
+}
 
 type inst = string * int (* instruction *)
 
@@ -77,15 +80,19 @@ let fix_opt (i: int) (insts: inst array) : inst array option =
     Some new_insts
 
 let main path =
-  let insts = Util.read_lines (open_in path)
+  let insts = open_in path
+              |> IO.read_lines 
               |> List.map parse_inst
               |> Array.of_list
   in
-  let len = Array.length insts in
-  for i = 0 to len-1 do
-    fix_opt i insts
-    |> fun o -> Option.bind o (run_machine (new_state len))
-    |> Option.iter print_int
-  done
+  begin
+    (* PART 2 *)
+    let len = Array.length insts in
+    for i = 0 to len-1 do
+      fix_opt i insts
+      |> fun o -> Option.bind o (run_machine (new_state len))
+                  |> Option.iter print_int
+    done
+  end
 
 let _ = Arg.parse [] main ""

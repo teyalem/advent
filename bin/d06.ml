@@ -1,3 +1,5 @@
+open Advent
+
 (* useful abstraction *)
 type marks = string
 type answers = char list
@@ -11,8 +13,8 @@ let collect_answers (marks_list: marks list) : answers =
   in List.filter f all_marked
 
 let read_marks file : marks list list =
-  let data = Util.read_file file in
-  Util.split "\n\n" data |> List.map Util.split_line
+  let data = IO.read_file file in
+  Delim.split "\n\n" data |> List.map Delim.split_line
 
 let main path =
   open_in path

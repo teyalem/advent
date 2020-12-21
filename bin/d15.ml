@@ -60,6 +60,6 @@ let () =
     (* PART 2 *)
     let max_turn = 30_000_000 in
     let game = Game.make input max_turn in
-    Game.run game max_turn;
+    Game.run game max_turn; (* It takes a while... *)
     Game.get_last game |> print_int;
   end

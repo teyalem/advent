@@ -1,3 +1,5 @@
+open Advent
+
 let preamable_n = 25 (* numbers of preamables *)
 
 (* split lists into two lists, length of first being n. *)
@@ -62,14 +64,15 @@ let find_list s e l =
   |> List.filter (fun n -> n <= e)
 
 let main path =
-  let numbers = Util.read_lines (open_in path)
-              |> List.map (int_of_string)
-  in
+  let numbers = open_in path |> IO.read_lines |> List.map (int_of_string) in
   begin
+    (* PART 1 *)
     let prev, stream = split preamable_n numbers in
     let finum = find_first_invalid_opt prev stream |> Option.get in
     print_int finum;
     print_newline ();
+
+    (* PART 2 *)
     let (st, en) = find_weakness finum numbers in
     let l = find_list st en numbers in
     let max = List.(fold_left max (hd l) (tl l))
