@@ -2,9 +2,9 @@ open Advent
 
 module Tile = struct
   (* kinds of tile *)
-  type t = Floor
-         | EmptySeat
-         | OccupiedSeat
+  type t = Floor | EmptySeat | OccupiedSeat
+
+  let default = Floor
 
   exception Invalid_tile
 
@@ -21,9 +21,6 @@ module Tile = struct
     | Floor -> '.'
     | EmptySeat -> 'L'
     | OccupiedSeat -> '#'
-
-  (* debug: print a tile *)
-  let print t = print_char (to_char t)
 
   (* If a seat is empty (L) and there are no occupied seats adjacent to it, the
    * seat becomes occupied.  If a seat is occupied (#) and four or more seats
@@ -50,47 +47,8 @@ end
 
 (* Map of Waiting Area *)
 module Map = struct
-  open Array
 
-  type tile = Tile.t
-  type t = tile array array
-
-  let width m = length m
-  let height m = length m.(0)
-
-  (* make an empty (i.e. every tile of the map is Floor) map of given width and height. *)
-  let make width height = Array.make_matrix width height Tile.Floor
-
-  (* parse a map. *)
-  let parse sl =
-    let data = 
-      sl |> List.map (fun s -> String.to_seq s
-                               |> Seq.map Tile.of_char
-                               |> Array.of_seq)
-      |> Array.of_list
-    in
-    let width = length data.(0)
-    and height = length data
-    in
-    let map = make width height in
-    (* transpose data *)
-    for y = 0 to height - 1 do
-      for x = 0 to width - 1 do
-        map.(x).(y) <- data.(y).(x)
-      done
-    done;
-    map
-
-  (* debug: print map as inputted *)
-  let print m =
-    let width = width m
-    and height = height m in
-    for x = 0 to width - 1 do
-      for y = 0 to height - 1 do
-        Tile.print m.(x).(y)
-      done;
-      print_newline ()
-    done
+  include Block.Make(Tile)
 
   (* get adjacent tiles of position mx, my *)
   let get_adjs mx my map =
@@ -138,16 +96,10 @@ module Map = struct
    * seef: map -> int -> int -> int
    * rulef: int -> tile -> tile *)
   let update seef rulef map = begin
-    let width = width map
-    and height = height map
-    in
-    let result = make width height in
-    for x = 0 to width - 1 do
-      for y = 0 to height - 1 do
+    let result = make (dimx map) (dimy map) in
+    map |> iteri (fun x y c ->
         let onum = seef map x y in
-        result.(x).(y) <- (rulef onum map.(x).(y))
-      done
-    done;
+        set result x y (rulef onum c));
     result
   end
 
@@ -162,7 +114,7 @@ let main path =
 
     (* PART 1 *)
     let map = ref data
-    and pmap = ref Map.(make (width data) (height data)) in
+    and pmap = ref Map.(make (dimx data) (dimy data)) in
 
     while not (Map.is_stable !map !pmap) do
       let tmp = Map.update Map.see_part1 Tile.rule_part1 !map in
@@ -170,20 +122,14 @@ let main path =
       map := tmp;
     done;
 
-    let num_occupied_seats = 
-      Array.to_list !map
-      |> Array.concat
-      |> Array.fold_left
-            (fun p n -> if n = Tile.OccupiedSeat then p+1 else p)
-            0
-    in
+    let num_occupied_seats = Map.count_occur Tile.OccupiedSeat !map in
     print_int num_occupied_seats;
 
     print_newline ();
 
     (* PART 2 *)
     let map = ref data
-    and pmap = ref Map.(make (width data) (height data)) in
+    and pmap = ref Map.(make (dimx data) (dimy data)) in
 
     while not (Map.is_stable !map !pmap) do
       let tmp = Map.update Map.see_part2 Tile.rule_part2 !map in
@@ -191,13 +137,7 @@ let main path =
       map := tmp;
     done;
 
-    let num_occupied_seats = 
-      Array.to_list !map
-      |> Array.concat
-      |> (Array.fold_left
-            (fun p n -> if n = Tile.OccupiedSeat then p+1 else p)
-            0)
-    in
+    let num_occupied_seats = Map.count_occur Tile.OccupiedSeat !map in
     print_int num_occupied_seats
 
   end

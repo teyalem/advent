@@ -7,12 +7,12 @@ let parse_buslist str =
 
 (* PART 1 Solver *)
 let find_earliest_bus start_min buslist =
-  let ebus, depart_min = buslist
-                          |> List.map (fun n -> n, (start_min/n + 1) * n)
-                          |> List.fold_left
-                            (fun (pn, pmin) (n, emin) ->
-                               if pmin > emin then n, emin else pn, pmin)
-                            (0, Int.max_int)
+  let ebus, depart_min =
+    buslist |> List.map (fun n -> n, (start_min/n + 1) * n)
+    |> List.fold_left
+      (fun (pn, pmin) (n, emin) ->
+         if pmin > emin then n, emin else pn, pmin)
+      (0, Int.max_int)
   in
   ebus, depart_min - start_min
 

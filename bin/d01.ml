@@ -1,10 +1,6 @@
 open Advent
 
-(* helper: read number list from in_channel *)
-let read_ints_from file =
-  IO.read_lines file
-  |> List.map int_of_string
-
+(* find two numbers that add up to 2020. *)
 let rec find_sum_2020 = function
   | [] -> Error "No Numbers in list"
   | n::ns ->
@@ -13,6 +9,7 @@ let rec find_sum_2020 = function
     in if other <> 0 then Ok (n, other)
     else find_sum_2020 ns
 
+(* generalized version of above. *)
 let rec find_sum total num = function
   | [] -> []
   | n::ns ->
@@ -25,7 +22,7 @@ let rec find_sum total num = function
       | result -> n::result
 
 let main path =
-  let data = open_in path |> read_ints_from in
+  let data = open_in path |> IO.read_lines |> List.map int_of_string in
   begin
     (* PART 1 *)
     find_sum_2020 data

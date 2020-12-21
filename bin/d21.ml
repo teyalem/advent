@@ -3,7 +3,6 @@ open Advent
 module StringSet = Set.Make(String)
 
 module IAList = struct
-  type t = (string * string) list (* ingredient, allergen *)
 
   let parse_line str =
     let parse_ingredient str =
@@ -42,13 +41,14 @@ module IAList = struct
     else List.fold_left StringSet.inter (List.hd ingreds) (List.tl ingreds)
 
   let rec match_allergens ialist = 
-    let all_allergens : string list = ialist |> List.split |> snd
-                        |> List.fold_left StringSet.union StringSet.empty
-                        |> StringSet.elements
+    let all_allergens =
+      ialist |> List.split |> snd
+      |> List.fold_left StringSet.union StringSet.empty
+      |> StringSet.elements
     in
 
     (* find matching allergens *)
-    let found_allergens : t =
+    let found_allergens =
       all_allergens
       |> List.filter_map (fun allergen ->
           let possible_ingreds = match_allergen allergen ialist in
@@ -57,7 +57,7 @@ module IAList = struct
             let ingred = StringSet.elements possible_ingreds |> List.hd in
             (* Printf.printf "found: %s %s\n" ingred allergen; (* debug *)*)
             Some (ingred, allergen)
-          else None (* multiple possiblity found; do later *)
+          else None (* multiple possiblity found; do it later *)
         )
     in
 
@@ -67,11 +67,11 @@ module IAList = struct
           |> List.fold_left (fun (il, al) (i, a) ->
               StringSet.remove i il,
               StringSet.remove a al) (il, al))
-      |> List.filter (fun (il, _) -> not @@ StringSet.is_empty il)
+      |> List.filter (fun (il, al) -> not @@ StringSet.(is_empty il || is_empty al))
     in
 
     found_allergens @
-    if List.length ialist = 0 || List.for_all (fun (_, al) -> StringSet.is_empty al) ialist
+    if List.length ialist = 0
     then []
     else match_allergens ialist
 

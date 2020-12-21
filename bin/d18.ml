@@ -113,7 +113,7 @@ let main path =
     data
     |> List.map Expr.parse_part1
     |> List.map Expr.calculate
-    |> List.fold_left Int.add 0
+    |> sum
     |> print_int;
 
     print_newline ();
@@ -122,7 +122,7 @@ let main path =
     data
     |> List.map Expr.parse_part2
     |> List.map Expr.calculate
-    |> List.fold_left Int.add 0
+    |> sum
     |> print_int;
   end
 

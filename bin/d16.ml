@@ -118,7 +118,7 @@ let main path =
              | [n] -> Some n
              | _ -> assert false
     )
-    |> List.fold_left Int.add 0
+    |> sum
     |> print_int;
 
     print_newline ();

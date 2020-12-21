@@ -1,5 +1,7 @@
 open Advent
 
+(* Policy is a simple validation function.
+ * Rule generates policy. *)
 type policy = string -> bool
 type rule = int -> int -> char -> policy
 
@@ -20,10 +22,9 @@ let rule_b a b ch = fun pass ->
   in ca <> cb
 
 (* count valid passwords *)
-let count_valid =
-  List.fold_left
-    (fun c (pol, pass) -> c + if pol pass then 1 else 0)
-    0
+let count_valid l =
+  List.filter (fun (pol, pass) -> pol pass) l
+  |> List.length
 
 let main path =
   let data = open_in path |> IO.read_lines in

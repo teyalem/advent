@@ -1,68 +1,63 @@
 open Advent
 
-type map_sign = Open | Tree
+module MapSign = struct
+  type t = Open | Tree
 
-exception Not_a_sign
+  let default = Open
 
-let of_char = function
-  | '.' -> Open
-  | '#' -> Tree
-  | _ -> raise Not_a_sign
+  exception Not_a_sign
 
-(* Map is two-dimension array of map_sign, whose top left position is
- * (0, 0) and goes down right. This map is transposed; you should use
- * map.(y).(x) to access to position x, y.
- *)
-type map = map_sign array array
+  let of_char = function
+    | '.' -> Open
+    | '#' -> Tree
+    | _ -> raise Not_a_sign
 
-(* maps functions *)
-let height = Array.length
-let width map = Array.length map.(0)
+  let to_char = function
+    | Open -> '.'
+    | Tree -> '#'
 
-let read_map file =
-    IO.read_lines file
-    |> List.map (fun line ->
-        String.to_seq line
-        |> Seq.map of_char
-        |> Array.of_seq)
-    |> Array.of_list
+end
 
-(* x, y *)
-type pos = int * int
+module Map = struct
+
+  include Block.Make(MapSign)
+
+  let next_pos (x, y) (right, down) width =
+    ((x + right) mod width), y + down
+
+  (* slide through map *)
+  let slide angle map : elt list =
+    let rec inner (x, y) =
+      if y >= (dimy map) then []
+      else
+        let s = get map x y
+        and next_pos = next_pos (x, y) angle (dimx map)
+        in s::(inner next_pos)
+    in inner (0, 0)
+
+  let count_thuds map angle =
+    slide angle map
+    |> List.filter ((=) MapSign.Tree)
+    |> List.length
+
+end
 
 (* right 3, down 1 *)
 let slide_angle = (3, 1)
 
-let next_pos (x, y) (down, right) width =
-  ((x + right) mod width), y + down
-
-let slide (angle: pos) (map: map) : map_sign list =
-  let rec inner (x, y) =
-   if y >= (height map) then []
-   else
-     let s = map.(y).(x)
-     and next_pos = next_pos (x, y) angle (width map)
-     in s::(inner next_pos)
-  in inner (0, 0)
-
-let count_thuds map angle =
-  slide angle map
-  |> List.filter ((=) Tree)
-  |> List.length
-
 let main path =
-  let map = open_in path |> read_map in
+  let map = open_in path |> IO.read_lines |> Map.parse in
   begin
     (* PART 1 *)
-    count_thuds map slide_angle
+    Map.count_thuds map slide_angle
     |> print_int;
 
     print_newline ();
 
     (* PART 2 *)
-    List.map (count_thuds map)
-      [ 1, 1; 1, 3; 1, 5; 1, 7; 2, 1;]
-    |> List.fold_left Int.mul 1
+    List.map (Map.count_thuds map)
+      [ 1, 1; 3, 1; 5, 1; 7, 1; 1, 2;]
+    |> sum
     |> print_int
 
   end

@@ -1,35 +1,5 @@
 open Advent
 
-let starts_with pat str =
-  let pat = Str.regexp ("^" ^ pat) in
-  Str.string_match pat str 0
-
-(* array of bits *)
-module Bitarray = struct
-  (* bits. 0 is lst and len - 1 is mst. *)
-  type t = int array
-
-  let get bs i = bs.(i)
-
-  let set bs i n = bs.(i) <- n
-
-  let of_int n =
-    let rec inner n =
-      if n = 0 then assert false
-      else if n = 1 then [1]
-      else
-        (n mod 2) :: (inner (n/2))
-    in
-    let bits = inner n |> Array.of_list in
-    Array.init 36
-      (fun i -> match bits.(i) with
-         | b -> b
-         | exception Invalid_argument _ -> 0)
-
-  let to_int bs =
-    Array.fold_right (fun n p -> p * 2 + n) bs 0
-end
-
 (* Codes of docking program *)
 module Code = struct
   type t = Mask of (int * int) list
@@ -144,16 +114,14 @@ let main path =
     (* PART 1 *)
     run_1 mem data
     |> Memory.get_data
-    |> List.fold_left Int.add 0
-    |> print_int;
+    |> sum |> print_int;
 
     print_newline ();
 
     (* PART 2 *)
     run_2 mem data
     |> Memory.get_data
-    |> List.fold_left Int.add 0
-    |> print_int
+    |> sum |> print_int
   end
 
 let _ = Arg.parse [] main ""

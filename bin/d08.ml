@@ -55,9 +55,9 @@ end
  * None means there's infinite loop.
  * Some n means the program exits successfully and n is the value of acc.
  *)
-let rec run_machine (m: mstate) (insts: inst array) : int option =
-  if m.pc >= (Array.length insts) then Some m.acc (* program exited successfully *)
-  else if m.visited.(m.pc) then None (* infinite loop detected *)
+let rec run_machine m insts =
+  if m.pc >= (Array.length insts) then Ok m.acc (* program exited successfully *)
+  else if m.visited.(m.pc) then Error m.acc (* infinite loop detected *)
   else begin (* running state *)
     step_machine m insts;
     run_machine m insts
@@ -80,18 +80,22 @@ let fix_opt (i: int) (insts: inst array) : inst array option =
     Some new_insts
 
 let main path =
-  let insts = open_in path
-              |> IO.read_lines 
-              |> List.map parse_inst
-              |> Array.of_list
-  in
+  let insts = open_in path |> IO.read_lines
+              |> List.map parse_inst |> Array.of_list in
+  let len = Array.length insts in
   begin
+    (* PART 1 *)
+    run_machine (new_state len) insts
+    |> Result.iter_error print_int;
+
+    print_newline ();
+
     (* PART 2 *)
-    let len = Array.length insts in
     for i = 0 to len-1 do
-      fix_opt i insts
-      |> fun o -> Option.bind o (run_machine (new_state len))
-                  |> Option.iter print_int
+      let fixed_insts = fix_opt i insts in
+      let try_run insts = run_machine (new_state len) insts |> Result.to_option in
+      Option.bind fixed_insts try_run
+      |> Option.iter print_int
     done
   end
 
