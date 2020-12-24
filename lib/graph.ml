@@ -1,17 +1,18 @@
+(** Graph of indexes. *)
+
 open List
 
-(* Graph *)
-type t = (int * int list) list (* node and list of adjacent nodes *)
+(** node and list of adjacent nodes *)
+type t = (int * int list) list
 
-(* debug: print graph *)
+(** Print a graph g as '3: 1 2 4' format. *)
 let print g =
   iter (fun (i, e) ->
       Printf.printf "%d:" i;
       iter (Printf.printf " %d") e;
       print_newline ()) g
 
-(* debug: print graph in graphviz format
- * WARNING: output is very messy. *)
+(** Print a graph g in `graphviz` format. It can be used as visualization. *)
 let print_graphviz g =
   print_endline "digraph G {";
   iter (fun (i, e) ->
@@ -25,32 +26,36 @@ let is_connected node other_node graph =
 (* count number of edge *)
 let num_edge node graph = assoc node graph |> length
 
-(* remove node from a graph *)
+(* remove a node from a graph *)
 let remove node graph =
   graph |> remove_assoc node
   |> map (fun (i, e) -> i, filter (fun n -> n <> node) e)
 
-let find_inner node graph =
-  match List.assoc node graph with
-  | [left; right] ->
-    List.assoc left graph
-    |> List.filter (fun pin -> is_connected pin right graph)
-    |> List.find (fun n -> node <> n)
-
-  | _ -> assert false
-
-let rec follow_graph node graph =
-  let edge = List.assoc node graph
-  and graph = remove node graph in
-  match edge with
-  | [] -> [ node ]
-  | [ next ] -> node :: (follow_graph next graph)
-  | _ -> assert false
-
 (* Unfold a lattice to int list list *)
 let unfold_lattice graph =
-    (* first node of array *)
-    let first_node = graph |> find (fun (_, e) -> length e = 2) |> fst in
+  (* first node of array *)
+  let first_node = graph |> find (fun (_, e) -> length e = 2) |> fst in
+
+  (* find inner node that is (1) connected to all nodes of the given node and
+   * (2) not the given node. *)
+  let find_inner node graph =
+    match List.assoc node graph with
+    | [left; right] ->
+      List.assoc left graph
+      |> List.filter (fun pin -> is_connected pin right graph)
+      |> List.find (fun n -> node <> n)
+
+    | _ -> assert false
+  in
+
+  let rec consume_line node graph =
+    let edge = List.assoc node graph
+    and graph = remove node graph in
+    match edge with
+    | [] -> [ node ]
+    | [ next ] -> node :: (consume_line next graph)
+    | _ -> assert false
+  in
 
   let rec unfold_row node pin graph =
     match List.assoc node graph with
@@ -70,7 +75,7 @@ let unfold_lattice graph =
 
   let rec unfold_column node pin graph =
     match List.assoc node graph with
-    | [_] -> [follow_graph node graph] (* a single line *)
+    | [_] -> [consume_line node graph] (* a single line *)
     | [left; right] ->
       let next_node, e = if left = pin || pin = 0 then right, left else left, right in
       let next_pin = find_inner node graph in

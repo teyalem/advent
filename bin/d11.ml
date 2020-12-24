@@ -56,7 +56,7 @@ module Map = struct
     for x = mx - 1 to mx + 1 do
       for y = my - 1 to my + 1 do
         let t =
-          match map.(x).(y) with
+          match get map x y with
           | t -> if x = mx && y = my then Tile.Floor else t
           | exception Invalid_argument _ -> Tile.Floor
         in
@@ -77,7 +77,7 @@ module Map = struct
     let x = x + dx
     and y = y + dy
     in
-    match map.(x).(y) with
+    match get map x y with
     | Tile.Floor -> find_first_seat map (dx, dy) (x, y)
     | t -> t
     | exception Invalid_argument _ -> Tile.Floor

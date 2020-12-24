@@ -10,7 +10,7 @@ module type SignType = sig
   val to_char: t -> char
 end
 
-(* Output module *)
+(* Block module *)
 module type S = sig
   type elt
   type t
@@ -23,16 +23,28 @@ module type S = sig
   val dimx: t -> int
   val dimy: t -> int
 
+  val sub: t -> int * int -> int * int -> t
+
+  val copy: t -> t
+
   (* iterations *)
   val iteri: (int -> int -> elt -> unit) -> t -> unit
 
+  (* print and parse *)
   val print: t -> unit
-  val parse: string -> t
+  val parse: string list -> t
 
-  val count: elt -> t -> int
+  (* count occurences of an element *)
+  val count_occur: elt -> t -> int
+
+  (* Conversions *)
+  val of_matrix: elt array array -> t
+  val to_matrix: t -> elt array array
 end
 
-module Make(Sign: SignType) = struct
+module Make(Sign: SignType)
+  : (S with type elt = Sign.t) =
+struct
   type elt = Sign.t
   type t = elt array array
 
@@ -45,6 +57,13 @@ module Make(Sign: SignType) = struct
 
   let dimx block = Array.length block
   let dimy block = Array.length block.(0)
+
+  let sub block (sx, sy) (lenx, leny) =
+    let open Array in
+    sub block sx lenx
+    |> map (fun a -> sub a sy leny)
+
+  let copy block = Array.map Array.copy block
 
   (* iterate through block *)
   let iteri f block =
@@ -81,5 +100,8 @@ module Make(Sign: SignType) = struct
     iteri (fun _ _ c ->
         if c = t then incr count else ()) block;
     !count
+
+  let of_matrix mat = mat
+  let to_matrix b = b
 
 end

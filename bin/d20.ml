@@ -52,30 +52,29 @@ module ImageBlock = struct
   (* solve jigsaw puzzle of images by making a graph *)
   let assemble (blocks: block_list) : graph =
     let open List in
-    (* block list to edge list *)
-    let all_edges = blocks |> map (fun (i, b) -> i, get_edges b) in
-
-    (* test a and b is the same edge *)
+    (* predicate: test a and b is the same edge *)
     let is_same_edge a b = a = b || a = rev_array b in
 
+    (* map block association list to edge list *)
+    let all_edges = blocks |> map (fun (i, b) -> i, get_edges b) in
+
     (* find adjacent block of specific edge *)
-    let find_adj_blocks i edge =
-      let all_edges = List.remove_assoc i all_edges in
-      find_opt (fun (_, edges) -> exists (is_same_edge edge) edges) all_edges
+    let find_adj_blocks block_idx edge =
+      find_opt
+        (fun (idx, edges) ->
+           idx <> block_idx && exists (is_same_edge edge) edges)
+        all_edges
       |> Option.map fst
     in
 
     (* edge list to adjacent list *)
     all_edges |> map (fun (i, edges) ->
-         let idxs = edges |> filter_map (fun edge -> find_adj_blocks i edge) in
-         i, idxs)
+         let adjs = filter_map (find_adj_blocks i) edges in
+         i, adjs)
 
   (* remove border from an image block *)
   let remove_border (block: t) : t =
-    let open Array in
-    let len = dimx block in
-    sub block 1 (len-2)
-    |> map (fun a -> sub a 1 (len-2))
+    sub block (1, 1) (dimx block - 2, dimy block - 2)
 
   (* return block rotated 90-degree counter-clockwise *)
   let rotate block =
@@ -121,12 +120,16 @@ module ImageBlock = struct
       List.map flip_vert rotations; ]
 
   let is_matched_lr a b =
+    let a = to_matrix a
+    and b = to_matrix b in
     let len = Array.length a in
     let side_a_right = a.(len-1)
     and side_b_left = b.(0)
     in side_a_right = side_b_left
 
   let is_matched_ud a b =
+    let a = to_matrix a
+    and b = to_matrix b in
     let len = Array.length a in
     let side_a_down = Array.map (fun arr -> arr.(len-1)) a
     and side_b_upper = Array.map (fun arr -> arr.(0)) b
@@ -169,7 +172,8 @@ module ImageBlock = struct
             loop (idx+1) arr)
     in
 
-    let images = loop 0 (Array.init len (fun _ -> Array.make len [||])) |> Option.get in
+    let frame = Array.init len (fun _ -> Array.init len (fun _ -> make 0 0)) in
+    let images = loop 0 frame |> Option.get in
 
     print_endline "Image Array Found"; (* debug *)
 
@@ -181,10 +185,14 @@ module ImageBlock = struct
     Array.to_list images
     |> map (fun l ->
         Array.to_list l
-        |> map (fun b -> remove_border b |> transpose |> Array.to_list) (* pixel array list list *)
+        |> map (fun b -> remove_border b
+                         |> transpose
+                         |> to_matrix
+                         |> Array.to_list) (* pixel array list list *)
         |> fun l -> fold_left (fun p n -> elemwise_concat p n) (hd l) (tl l)
                     |> Array.of_list)
     |> Array.concat
+    |> of_matrix
 
 end
 
@@ -217,10 +225,10 @@ let mark_matches m mat =
 
   for y = 0 to mat_height - m_height - 1 do
     for x = 0 to mat_width - m_width - 1 do
-      if List.for_all (fun (dx, dy, c) -> mat.(x+dx).(y+dy) = c) matchlist
+      if List.for_all (fun (dx, dy, c) -> ImageBlock.get mat (x+dx) (y+dy) = c) matchlist
       then begin (* found *)
         found := true;
-        List.iter (fun (dx, dy, _) -> mat.(x+dx).(y+dy) <- Pixel.Monster) matchlist;
+        List.iter (fun (dx, dy, _) -> ImageBlock.set mat (x+dx) (y+dy) Pixel.Monster) matchlist;
       end
       else ()
     done

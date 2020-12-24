@@ -91,12 +91,12 @@ let main path =
     print_newline ();
 
     (* PART 2 *)
-    for i = 0 to len-1 do
-      let fixed_insts = fix_opt i insts in
-      let try_run insts = run_machine (new_state len) insts |> Result.to_option in
-      Option.bind fixed_insts try_run
-      |> Option.iter print_int
-    done
+    List.init len (fun i -> i)
+    |> List.filter_map (fun i -> fix_opt i insts)
+    |> List.find_map (fun fixed_insts ->
+        run_machine (new_state len) fixed_insts |> Result.to_option
+      )
+    |> Option.iter print_int
   end
 
 let _ = Arg.parse [] main ""
