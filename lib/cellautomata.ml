@@ -31,10 +31,9 @@ module type S = sig
   type pos
   type t
 
-  (* convenient functions for extending module *)
-  val default: elt
-  val next: elt list -> elt -> elt
-  val neighbor_positions: pos -> pos list
+  (* to be convenient to extend module *)
+  include CellType with type t := elt
+  include PositionType with type t := pos
 
   (* main function *)
   val next_state: t -> t
@@ -49,20 +48,21 @@ module Make (B: BoardType)
         and type pos := B.pos) =
 struct
 
-  let default = C.default
-  let next = C.next
-  let neighbor_positions = P.neighbor_positions
-
-  let neighbors board pos =
-    let neighs = neighbor_positions pos in
-    List.map
-      (fun pos -> B.get_cell board pos
-                  |> Option.value ~default: default)
-      neighs
+  include C
+  include P
 
   let next_state board =
+    (* gather neighbors of the given position from board *)
+    let neighbors board pos =
+      let neighs = neighbor_positions pos in
+      List.map
+        (fun pos -> B.get_cell board pos
+                    |> Option.value ~default: default)
+        neighs
+    in
+
     let updates = ref [] in (* update list *)
-    let collect_updates pos elt =
+    let collect_update pos elt =
         let neighs = neighbors board pos in
         let next_elt = next neighs elt in
 
@@ -72,7 +72,8 @@ struct
         else ()
     in
 
-    B.iteri_cell collect_updates board;
+    B.iteri_cell collect_update board;
+    (* Perform Update *)
     List.iter (fun (pos, elt) -> B.set_cell board pos elt) !updates;
     board
 
