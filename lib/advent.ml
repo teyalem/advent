@@ -2,6 +2,12 @@
  * Common patterns for AoC
  *)
 
+let rec take n = function
+  | [] -> []
+  | x::xs ->
+    if n = 0 then []
+    else x :: take (n-1) xs
+
 (* reverse array *)
 let rev_array arr =
   Array.to_list arr
@@ -20,6 +26,8 @@ module IO = Io (* Useful IO Operations *)
 module Graph = Graph
 module Block = Block
 module Bitarray = Bitarray
+module CellularAutomata = Cellautomata
+module BlockBoard = Blockboard
 
 (* inclusive range *)
 module Range = struct

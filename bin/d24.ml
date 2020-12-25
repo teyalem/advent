@@ -1,5 +1,6 @@
 open Advent
 
+(* Direction in hex grid *)
 module Direction = struct
   type t = East
          | SouthEast | SouthWest
@@ -28,17 +29,9 @@ module Direction = struct
 
 end
 
-module Position = struct
+module HexagonalPosition = struct
   (* position of hexagonal grid *)
   type t = int * int (* x, y *)
-
-  (* standard coord *)
-           (* North is y+ *)
-           (* East is x+ *)
-
-  let zero = 0, 0
-
-  let make x y = x, y
 
   let next_pos (x, y) dir =
     let module Dir = Direction in
@@ -51,22 +44,27 @@ module Position = struct
     | Dir.SouthEast -> x, y - 1
 
   let find_pos dirlist =
-    List.fold_left (fun pos dir -> next_pos pos dir) zero dirlist
+    List.fold_left (fun pos dir -> next_pos pos dir) (0,0) dirlist
+
+  let neighbor_positions (pos: t) : t list =
+    List.map (next_pos pos) Direction.all_directions
 
 end
 
+(* Tile module for Floor *)
 module Tile = struct
   type t = Black | White
 
   let default = White
 
-  let of_char _ = assert false
+  let of_char _ = assert false (* No parsing *)
 
   let to_char = function
     | Black -> '#'
     | White -> '.'
 
-  let next_tile num_black tile =
+  let next neighs tile =
+    let num_black = List.(filter ((=) Black) neighs |> length) in
     match tile with
     | Black -> if num_black = 0 || num_black > 2 then White else Black
     | White -> if num_black = 2 then Black else White
@@ -78,55 +76,23 @@ module Tile = struct
 
 end
 
+(* a floor block *)
 module Floor = struct
-(*  type t = (Position.t * Tile.t) list
 
-  let empty = []
+  module B = Block.Make(Tile)
+  module Board = BlockBoard.Make(B)
 
-  let flip_tiles dirlists =
-
-    let flip_one floor dirs =
-      let pos = Position.find_pos dirs in
-
-      match List.assoc_opt pos floor with
-      | None -> (pos, Tile.Black) :: floor
-      | Some t ->
-        let floor = List.remove_assoc pos floor in
-        (pos, Tile.flip t) :: floor
-    in
-
-    List.fold_left (fun floor dirs -> flip_one floor dirs) empty dirlists
-    *)
-
-  include Block.Make(Tile)
+  include B
+  include Board
+  include CellularAutomata.Make(Board)(HexagonalPosition)(Tile)
 
   let flip_tiles floor dirlists =
-
     let flip_one dirs =
-      let x, y  = Position.find_pos dirs in
+      let x, y  = HexagonalPosition.find_pos dirs in
       let x, y = x + dimx floor / 2, y + dimy floor / 2 in (* move pos to center *)
-      set floor x y (Tile.flip @@ get floor x y)
+      set floor x y @@ Tile.flip @@ get floor x y
     in
-
     List.iter flip_one dirlists
-
-  let count_black_neighs floor pos =
-    let all_neigh_pos = List.map (Position.next_pos pos) Direction.all_directions in
-    all_neigh_pos |> List.map (fun (x, y) -> match get floor x y with c -> c | exception _ -> Tile.default)
-    |> List.filter ((=) Tile.Black)
-    |> List.length
-
-  let turn_day floor =
-    let updates = ref [] in (* update list *)
-    floor |> iteri
-      (fun x y tile ->
-         let b = count_black_neighs floor (x, y) in
-         let next_tile = Tile.next_tile b tile in
-         if next_tile <> tile
-         then updates := (x, y, next_tile) :: !updates (* only update tile when it's changed *)
-         else ());
-
-    List.iter (fun (x, y, t) -> set floor x y t) !updates (* perform update *)
 
 end
 
@@ -156,7 +122,7 @@ let main path =
 
     (* PART 2 *)
     for _ = 1 to 100 do
-      Floor.turn_day floor
+      ignore @@ Floor.next_state floor
     done;
     Floor.count_occur Tile.Black floor |> print_int;
 
