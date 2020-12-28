@@ -6,7 +6,6 @@ let main path =
     (* PART 1 *)
     let open IntCode in
     let m = load data in
-    extend_mem m 1_000_000;
     set_input m 1;
     run m;
     get_output m |> print_int;
@@ -15,7 +14,6 @@ let main path =
 
     (* PART 2 *)
     let m = load data in
-    extend_mem m 1_000_000;
     set_input m 2;
     run m;
     get_output m |> print_int
