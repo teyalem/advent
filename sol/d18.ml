@@ -115,45 +115,25 @@ let make_graph map : (char, (char * int) list) Hashtbl.t =
   |> List.to_seq
   |> Hashtbl.of_seq
 
-let find_shortest_route graph keyn start =
-  let q = Queue.create () in
-  let rec bfs () =
-    if Queue.is_empty q
-    then []
-    else
+(* implementing dijkstra's algorithm *)
+let find_shortest_route graph keyn start = begin
 
-      let node, dis, keys, visited = Queue.pop q in
-      if List.length keys = keyn
-      then dis :: bfs ()
+end
 
-      else begin
-        let visited = node :: visited
-        and keys =
-          if is_lowercase node
-          then node :: keys
-          else keys
-        in
-        Hashtbl.find graph node
-        |> List.filter (fun (t, _) ->
-            if is_uppercase t
-            then List.mem (to_lowercase t) keys
-            else not @@ List.mem t visited)
-        |> List.iter ( fun (t, d) -> Queue.push (t, dis + d, keys, visited) q);
-        bfs ()
-    end
-  in
-
-  Queue.push (start, 0, [], []) q;
-  bfs ()
-  |> List.fold_left min max_int
+let print_graph graph = begin
+  Printf.printf "digraph G {\n";
+  Hashtbl.iter (fun k v ->
+      List.iter (fun (t, _) -> Printf.printf "\"%c\" -> \"%c\"\n" k t) v)
+    graph;
+  Printf.printf "}";
+end
 
 let main path =
   let data = open_in path |> IO.read_lines |> Map.parse in
   begin
     (* PART 1 *)
     let graph = make_graph data in
-    find_shortest_route graph (List.length @@ find_keys data) '@'
-    |> print_int
+
   end
 
 let () = Arg.parse [] main ""
