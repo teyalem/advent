@@ -16,34 +16,6 @@ let find_earliest_bus start_min buslist =
   in
   ebus, depart_min - start_min
 
-(* Extended GCD *)
-let rec egcd a b =
-  if b = 0 then 1, 0
-  else
-    let q = a/b
-    and r = a mod b
-    in
-    let (s, t) = egcd b r in
-    (t, s - q*t)
-
-(* Find inverse of modulo *)
-let mod_inv a b =
-  let x, y = egcd a b in
-  if a*x + b*y = 1 then Some x else None
-
-(* Chinese Reminder Theorem *)
-let crt cong =
-  let open List in
-  let ml, al = split cong in
-  let m = fold_left Int.mul 1 ml in
-  let big_ml = map (fun n -> m / n) ml in
-  let invs = map2 mod_inv big_ml ml |> map Option.get
-  in
-  map2 Int.mul big_ml invs
-  |> map2 Int.mul al
-  |> fold_left Int.add 0
-  |> fun n -> n mod m
-
 let main path =
   let data = open_in path |> IO.read_lines in
   let dpnum = List.nth data 0 |> int_of_string
