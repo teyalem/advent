@@ -1,4 +1,4 @@
-open Advent
+open Ut
 
 type colorcode = string * string (* indentifier for bags *)
 type contents = (int * colorcode) list
@@ -74,7 +74,7 @@ let rec count_inner_bags (rules: rule list) (bag: colorcode) : int =
        |> List.fold_left (fun p (num, bag) -> p + num * (1 + (count_inner_bags rules bag))) 0
 
 let main path =
-  let rules = open_in path |> IO.read_lines |> List.map parse_rule
+  let rules = open_in path |> IO.input_lines |> List.map parse_rule
   in
   begin
     (* PART 1 *)

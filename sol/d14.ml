@@ -1,4 +1,4 @@
-open Advent
+open Ut
 
 (* Codes of docking program *)
 module Code = struct
@@ -106,7 +106,7 @@ let run_2 mem code =
 
 let main path =
   let data = open_in path
-             |> IO.read_lines
+             |> IO.input_lines
              |> List.map Code.parse
   in
   let mem = Memory.empty in

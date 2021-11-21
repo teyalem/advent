@@ -1,4 +1,4 @@
-open Advent
+open Ut
 
 (* useful abstraction *)
 type marks = string
@@ -21,7 +21,7 @@ let parse str =
   Delim.split "\n\n" str |> List.map Delim.split_line
 
 let main path =
-  let data = open_in path |> IO.read_file |> parse in
+  let data = open_in path |> IO.input_all |> parse in
   begin
     (* PART 1 *)
     data

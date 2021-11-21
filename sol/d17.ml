@@ -1,4 +1,4 @@
-open Advent
+open Ut
 
 (* Conway Cube *)
 module Cube = struct
@@ -272,7 +272,7 @@ let parse_plain sl =
   end
 
 let main path =
-  let data = open_in path |> IO.read_lines |> parse_plain in
+  let data = open_in path |> IO.input_lines |> parse_plain in
   begin
     (* PART 1 *)
     let ps = PocketSpace.initialize 49 data in

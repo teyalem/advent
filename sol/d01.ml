@@ -1,4 +1,4 @@
-open Advent
+open Ut
 
 (* find two numbers that add up to 2020. *)
 let rec find_sum_2020 = function
@@ -22,7 +22,7 @@ let rec find_sum total num = function
       | result -> n::result
 
 let main path =
-  let data = open_in path |> IO.read_lines |> List.map int_of_string in
+  let data = open_in path |> IO.input_lines |> List.map int_of_string in
   begin
     (* PART 1 *)
     find_sum_2020 data

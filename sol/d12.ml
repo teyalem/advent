@@ -1,4 +1,4 @@
-open Advent
+open Ut
 
 (* wrapping modulo operation, negetive value is turned to value + 360. *)
 let wrap_mod angle =
@@ -126,7 +126,7 @@ end
 
 let main path =
   (* data *)
-  let data = open_in path |> IO.read_lines |> List.map Code.parse in
+  let data = open_in path |> IO.input_lines |> List.map Code.parse in
   begin
     (* PART 1 *)
     let ship = Ship.make 90 (* east facing *) in

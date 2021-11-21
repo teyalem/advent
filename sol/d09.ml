@@ -1,4 +1,4 @@
-open Advent
+open Ut
 
 let preamable_n = 25 (* numbers of preamables *)
 
@@ -64,7 +64,7 @@ let find_list s e l =
   |> List.filter (fun n -> n <= e)
 
 let main path =
-  let numbers = open_in path |> IO.read_lines |> List.map (int_of_string) in
+  let numbers = open_in path |> IO.input_lines |> List.map (int_of_string) in
   begin
     (* PART 1 *)
     let prev, stream = split preamable_n numbers in

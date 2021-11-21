@@ -1,4 +1,4 @@
-open Advent
+open Ut
 
 module Handshake = struct
   let subject_number = 7
@@ -33,7 +33,7 @@ let parse_pubkeys keys =
   | _ -> raise (Invalid_argument "parse_pubkeys")
 
 let main path =
-  let card, door = open_in path |> IO.read_lines |> parse_pubkeys in
+  let card, door = open_in path |> IO.input_lines |> parse_pubkeys in
   begin
     (* PART 1 *)
     let card_lsize = Handshake.find_loop_size card in

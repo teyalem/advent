@@ -1,4 +1,4 @@
-open Advent
+open Ut
 open Scanf
 
 (* association list *)
@@ -71,7 +71,7 @@ let is_valid passport =
   | _ -> false
 
 let main path =
-  let data = open_in path |> IO.read_file |> read_passports in
+  let data = open_in path |> IO.input_all |> read_passports in
   begin
 
     (* PART 2 *)

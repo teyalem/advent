@@ -1,4 +1,4 @@
-open Advent
+open Ut
 
 let parse_buslist str =
   Delim.split "," str
@@ -17,7 +17,7 @@ let find_earliest_bus start_min buslist =
   ebus, depart_min - start_min
 
 let main path =
-  let data = open_in path |> IO.read_lines in
+  let data = open_in path |> IO.input_lines in
   let dpnum = List.nth data 0 |> int_of_string
   and buslist = List.nth data 1 |> parse_buslist
   in
@@ -39,7 +39,7 @@ let main path =
                      Some (n, if i = 0 then 0 else (abs (~-i mod n)))
                  )
     in
-    let t = crt cong in
+    let t = Math.crt cong in
     print_int (abs t)
   end
 

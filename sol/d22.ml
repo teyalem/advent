@@ -1,4 +1,4 @@
-open Advent
+open Ut
 
 (* Combat *)
 module Game = struct
@@ -119,7 +119,7 @@ module Game = struct
 end
 
 let main path =
-  let p1, p2 = open_in path |> IO.read_file |> Game.parse_decks in
+  let p1, p2 = open_in path |> IO.input_all |> Game.parse_decks in
   begin
     (* PART 1 *)
     let d1, d2 = Queue.(copy p1, copy p2) in

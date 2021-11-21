@@ -1,4 +1,4 @@
-open Advent
+open Ut
 
 module Tile = struct
   (* kinds of tile *)
@@ -116,7 +116,7 @@ module Map2 = struct
 end
 
 let main path =
-  let data = open_in path |> IO.read_lines in
+  let data = open_in path |> IO.input_lines in
   begin
     (* PART 1 *)
     let map = Map1.parse data in

@@ -1,4 +1,4 @@
-open Advent
+open Ut
 
 (* Simple predicates *)
 let is_num c = '0' <= c && c <= '9'
@@ -107,7 +107,7 @@ module Expr = struct
 end
 
 let main path =
-  let data = open_in path |> IO.read_lines in
+  let data = open_in path |> IO.input_lines in
   begin
     (* PART 1 *)
     data

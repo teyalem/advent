@@ -1,4 +1,4 @@
-open Advent
+open Ut
 
 module MapSign = struct
   type t = Open | Tree
@@ -46,7 +46,7 @@ end
 let slide_angle = (3, 1)
 
 let main path =
-  let map = open_in path |> IO.read_lines |> Map.parse in
+  let map = open_in path |> IO.input_lines |> Map.parse in
   begin
     (* PART 1 *)
     Map.count_thuds map slide_angle

@@ -1,4 +1,4 @@
-open Advent
+open Ut
 
 module StringSet = Set.Make(String)
 
@@ -78,7 +78,7 @@ module IAList = struct
 end
 
 let main path =
-  let data = open_in path |> IO.read_lines |> IAList.parse_list in
+  let data = open_in path |> IO.input_lines |> IAList.parse_list in
   begin
     (* PART 1*)
     let allergens = IAList.match_allergens data in

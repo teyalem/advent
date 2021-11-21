@@ -1,4 +1,4 @@
-open Advent
+open Ut
 
 (* last row and column *)
 let last_row = 127
@@ -43,7 +43,7 @@ let to_sid (row, col) = row*8 + col
 
 let main path =
   let open List in
-  let file = open_in path |> IO.read_lines in
+  let file = open_in path |> IO.input_lines in
   begin
     (* PART 2 *)
     file

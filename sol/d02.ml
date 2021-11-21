@@ -1,4 +1,4 @@
-open Advent
+open Ut
 
 (* Policy is a simple validation function.
  * Rule generates policy. *)
@@ -27,7 +27,7 @@ let count_valid l =
   |> List.length
 
 let main path =
-  let data = open_in path |> IO.read_lines in
+  let data = open_in path |> IO.input_lines in
   let make_list rule = List.map (parse_policy_pass rule) data in
   begin
     (* PART 1 *)

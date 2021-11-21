@@ -1,4 +1,4 @@
-open Advent
+open Ut
 
 (* machine state *)
 type mstate = {
@@ -80,7 +80,7 @@ let fix_opt (i: int) (insts: inst array) : inst array option =
     Some new_insts
 
 let main path =
-  let insts = open_in path |> IO.read_lines
+  let insts = open_in path |> IO.input_lines
               |> List.map parse_inst |> Array.of_list in
   let len = Array.length insts in
   begin

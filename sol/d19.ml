@@ -1,4 +1,4 @@
-open Advent
+open Ut
 
 let (>|) a b =
   match a with
@@ -114,7 +114,7 @@ let read_rule_msg file =
 
 
 let main path =
-  let rules, messages = open_in path |> IO.read_file |> read_rule_msg in
+  let rules, messages = open_in path |> IO.input_all |> read_rule_msg in
   begin
     (* PART 1 *)
     let rule_0 = Rule.compile 0 rules in

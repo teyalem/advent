@@ -1,4 +1,4 @@
-open Advent
+open Ut
 
 module Rule = struct
   open Range
@@ -108,7 +108,7 @@ let find_invalid_nums rules ticket =
 
 let main path =
   let rules, my_t, nearby_ts =
-    open_in path |> IO.read_file |> parse_note
+    open_in path |> IO.input_all |> parse_note
   in
   begin
     (* PART 1 *)

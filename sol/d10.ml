@@ -1,4 +1,4 @@
-open Advent
+open Ut
 
 (* calculate difference of jolts between two neighboring adapters. *)
 let rec diff = function
@@ -25,7 +25,7 @@ let count_arranges data =
 let main path =
   (* sorted list of adapters *)
   let data = open_in path
-             |> IO.read_lines
+             |> IO.input_lines
              |> List.map int_of_string
              |> List.sort Int.compare
   in

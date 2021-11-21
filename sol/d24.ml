@@ -1,4 +1,4 @@
-open Advent
+open Ut
 
 (* Direction in hex grid *)
 module Direction = struct
@@ -110,7 +110,7 @@ let parse_data str =
   List.map parse_directions lines
 
 let main path =
-  let data = open_in path |> IO.read_file |> parse_data in
+  let data = open_in path |> IO.input_all |> parse_data in
   let size = 150 in (* enough for my input *)
   begin
     (* PART 1 *)

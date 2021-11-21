@@ -1,4 +1,4 @@
-open Advent
+open Ut
 
 (* Monochrome Pixel *)
 module Pixel = struct
@@ -20,7 +20,7 @@ module Pixel = struct
 end
 
 (* Square Image Block from satellite *)
-module ImageBlock = struct
+module Image = struct
 
   include Block.Make(Pixel)
 
@@ -146,7 +146,7 @@ module ImageBlock = struct
             |> Array.of_list
     in
 
-    print_endline "Block Array Created"; (* debug *)
+    (* print_endline "Block Array Created"; (* debug *) *)
 
     let len = Array.length block_array in
 
@@ -175,7 +175,7 @@ module ImageBlock = struct
     let frame = Array.init len (fun _ -> Array.init len (fun _ -> make 0 0)) in
     let images = loop 0 frame |> Option.get in
 
-    print_endline "Image Array Found"; (* debug *)
+    (* print_endline "Image Array Found"; (* debug *) *)
 
     let elemwise_concat a b =
       map2 (fun a b -> Array.append a b) a b
@@ -217,18 +217,18 @@ let to_matchlist (m: string list) : (int * int * Pixel.t) list =
 let mark_matches m mat =
   let m_width = List.hd m |> String.length
   and m_height = List.length m
-  and mat_width = ImageBlock.dimx mat
-  and mat_height = ImageBlock.dimy mat
+  and mat_width = Image.dimx mat
+  and mat_height = Image.dimy mat
   and matchlist = to_matchlist m in
 
   let found = ref false in
 
   for y = 0 to mat_height - m_height - 1 do
     for x = 0 to mat_width - m_width - 1 do
-      if List.for_all (fun (dx, dy, c) -> ImageBlock.get mat (x+dx) (y+dy) = c) matchlist
+      if List.for_all (fun (dx, dy, c) -> Image.get mat (x+dx) (y+dy) = c) matchlist
       then begin (* found *)
         found := true;
-        List.iter (fun (dx, dy, _) -> ImageBlock.set mat (x+dx) (y+dy) Pixel.Monster) matchlist;
+        List.iter (fun (dx, dy, _) -> Image.set mat (x+dx) (y+dy) Pixel.Monster) matchlist;
       end
       else ()
     done
@@ -236,10 +236,10 @@ let mark_matches m mat =
   !found
 
 let main path =
-  let data = open_in path |> IO.read_file |> ImageBlock.parse_blocks in
+  let data = open_in path |> IO.input_all |> Image.parse_blocks in
   begin
     (* PART 1 *)
-    let graph = ImageBlock.assemble data in
+    let graph = Image.assemble data in
 
     graph
     |> List.filter (fun (_, e) -> List.length e = 2)
@@ -250,17 +250,18 @@ let main path =
     print_newline ();
 
     (* PART 2 *)
-    let image = ImageBlock.construct data graph in
+    let image = Image.construct data graph in
 
     let monster_image =
-      ImageBlock.all_mutations image
+      Image.all_mutations image
       |> List.find (mark_matches monster)
     in
 
     monster_image
-    |> ImageBlock.count_occur Pixel.Black
-    |> print_int
+    |> Image.count_occur Pixel.Black
+    |> print_int;
 
+    print_newline ();
   end
 
 let _ = Arg.parse [] main ""
