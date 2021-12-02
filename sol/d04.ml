@@ -1,4 +1,4 @@
-open Advent
+open Ut
 
 let to_digitlist n =
   Seq.unfold

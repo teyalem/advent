@@ -1,4 +1,4 @@
-open Advent
+open Ut
 
 module Color = struct
   type t = Black | White

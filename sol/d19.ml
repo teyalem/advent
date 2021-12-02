@@ -1,4 +1,4 @@
-open Advent
+open Ut
 
 let check_pos code x y =
   let m = IntCode.load code in

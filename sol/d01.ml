@@ -1,4 +1,4 @@
-open Advent
+open Ut
 
 let needed_fuel mass = mass/3 - 2
 

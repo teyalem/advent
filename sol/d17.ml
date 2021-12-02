@@ -1,4 +1,4 @@
-open Advent
+open Ut
 
 let neighs_delta = [ 0, -1; 0, 1; -1, 0; 1, 0 ]
 let neigh pos =

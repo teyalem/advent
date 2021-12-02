@@ -1,4 +1,4 @@
-open Advent
+open Ut
 
 let main path =
   let data = open_in path |> IO.read_file 
