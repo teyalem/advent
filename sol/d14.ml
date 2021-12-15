@@ -35,10 +35,9 @@ let insert_pair rules polymap : pairtbl =
        | Some x ->
          let amount = !count and ka, kb = keys pair x in
          count := 0; (* pair no longer exists *)
-         updates := (ka, amount) :: !updates;
-         updates := (kb, amount) :: !updates)
+         updates := (ka, amount) :: (kb, amount) :: !updates)
     polymap;
-  (* update changes *)
+  (* apply updates *)
   List.iter (fun (k, a) -> inc polymap k a) !updates;
   polymap
 
