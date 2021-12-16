@@ -40,9 +40,12 @@ let lowest_risk b =
     x, y
   in
 
+  (* dijkstra loop *)
   let rec aux (x, y) =
-    visited.(x).(y) <- true;
     let w = d.(x).(y) in
+    visited.(x).(y) <- true;
+
+    (* get neighbor nodes *)
     List.map (fun (dx, dy) -> x+dx, y+dy) neigh
     |> List.filter (fun (x, y) ->
         0 <= x && x < dimx && 0 <= y && y < dimy)
@@ -52,45 +55,23 @@ let lowest_risk b =
         if not visited.(x).(y) then add x y
       );
 
-    if x <> dimx-1 || y <> dimy-1
-    then aux @@ next_point ()
+    (* repeat until endpoint reached *)
+    if x <> dimx-1 || y <> dimy-1 then aux @@ next_point ()
   in
-  aux (0, 0);
-  d.(dimx-1).(dimy-1)
+  aux (0, 0); d.(dimx-1).(dimy-1)
 
 let enlarge b =
-  let inc b =
-    B.to_matrix b
-    |> Array.map (fun a ->
-        Array.map (fun e -> if e = 9 then 1 else e+1) a)
-    |> B.of_matrix
-  in
-
-  let concat_horiz bs =
-    List.map B.to_matrix bs
-    |> Array.concat
-    |> B.of_matrix
-
-  and concat_vert bs =
-    let dimy = B.dimy @@ List.hd bs in
-    let bs = List.map B.to_matrix bs in
-    Array.init dimy
-      (fun i -> List.map (fun b -> b.(i)) bs)
-    |> Array.map Array.concat
-    |> B.of_matrix
-  in
-
+  let inc b = Mat.map (fun e -> if e = 9 then 1 else e+1) b in
   let t =
     List.init 10 (fun i -> i)
     |> List.fold_left
-      (fun a i ->
-         if i = 0 then a.(i) <- b else a.(i) <- inc a.(i-1); a)
+      (fun a i -> if i > 0 then a.(i) <- inc a.(i-1); a)
       (Array.make 10 b)
   in
+
   List.init 5 (fun i -> List.init 5 (fun j -> i+j))
   |> List.map (List.map (fun i -> t.(i)))
-  |> List.map concat_vert
-  |> concat_horiz
+  |> Mat.concat
 
 let () =
   let data = IO.read_lines () |> B.parse in
