@@ -9,7 +9,7 @@ let count_incr seq =
 
 let () =
   let data =
-    open_in Sys.argv.(1) |> IO.input_lines
+    IO.read_lines ()
     |> List.map int_of_string
     |> List.to_seq
   in
@@ -19,7 +19,7 @@ let () =
     |> Printf.printf "%d\n";
 
     (* part 2 *)
-    Useq.windows 3 data
+    Seq.windows 3 data
     |> Seq.map (Seq.fold_left Int.add 0)
     |> count_incr
     |> Printf.printf "%d\n"

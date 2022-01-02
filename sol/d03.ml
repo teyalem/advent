@@ -39,14 +39,13 @@ let oxygen_rate =
 let co2_rate =
   gas_rate (fun (z, o) -> if z <= o then '0' else '1')
 
-let to_num =
-  fold_left
-    (fun n c ->
-       2*n + (match c with '0' -> 0 | '1' -> 1 | _ -> assert false))
-    0
+let to_num cs =
+  cs
+  |> map (function '0' -> 0 | '1' -> 1 | _ -> assert false)
+  |> fold_left (fun n d -> 2*n + d) 0
 
 let () =
-  let data = open_in Sys.argv.(1) |> IO.input_lines in
+  let data = IO.read_lines () in
   begin
     (* PART 1 *)
     let gr = gamma_rate data in

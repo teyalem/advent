@@ -1,5 +1,7 @@
 open Ut
 
+(* Disclaimer : I burrowed the algorithm from somewhere. *)
+
 type t =
   | Leaf of int
   | Node of t * t

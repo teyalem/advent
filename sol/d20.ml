@@ -1,9 +1,10 @@
 open Ut
 
-module Tile = struct
+module P = struct
   type t = Dark | Light
 
   let default = Dark
+
   let of_char = function
     | '.' -> Dark
     | '#' -> Light
@@ -18,59 +19,57 @@ module Tile = struct
     | Light -> 1
 end
 
-module B = Block.Make(Tile)
+module B = Block.Make(P)
 
-let tiles_to_int ts =
-  List.map Tile.to_int ts
+(* convert a list of pixels to an int *)
+let pixels_to_int ts =
+  List.map P.to_int ts
   |> List.fold_left (fun p n -> 2*p + n) 0
 
 let parse = function
   | alg :: "" :: img ->
-    let alg =
-      String.to_seq alg
-      |> Seq.map Tile.of_char
-      |> Array.of_seq
-    in
+    let alg = String.to_seq alg |> Seq.map P.of_char |> Array.of_seq in
     alg, B.parse img
   | _ -> assert false
 
-let ns = [ -1; 0; 1 ]
-let ns = List.concat_map (fun y -> List.map (fun x -> x, y) ns) ns
+(* relative postitions of pixels to consider to determine a pixel *)
+let ps =
+  let ps = [ -1; 0; 1 ] in
+  List.concat_map (fun y -> List.map (fun x -> x, y) ps) ps
 
-(* enlarged size *)
-let el = 2 (* 2 is enough *)
-
-let get_idx dt img x y =
-  let g x y = try B.get img x y with _ -> dt in
-  List.map (fun (dx, dy) -> x - el + dx, y - el + dy) ns
+(* get index of pixel that is going to be in position (x, y) *)
+let get_idx dp img x y =
+  (* out-of-bounds pixels are dp. *)
+  let g x y = try B.get img x y with _ -> dp in
+  (* because center part of new image is expanded by 2 pixels
+   * horizontally and vertically, we need to look at position (x-1, y-1). *)
+  List.map (fun (dx, dy) -> x-1 + dx, y-1 + dy) ps
   |> List.map (fun (x, y) -> g x y)
-  |> tiles_to_int
+  |> pixels_to_int
 
-let apply dt alg img : B.t =
-  Mat.init (B.dimx img + el*2) (B.dimy img + el*2)
-    (fun x y -> alg.(get_idx dt img x y))
+(* apply enhancing algorithm to image, assuming pixels not noted are dp. *)
+let apply alg dp img : B.t =
+  Mat.init (B.dimx img + 2) (B.dimy img + 2)
+    (fun x y -> alg.(get_idx dp img x y))
 
+(* apply enhance algorithm n times. *)
 let enhance n alg img =
-  let rec aux i dt img =
+  let rec aux i dp img =
     if i = n then img
     else
-      let ndt = alg.(tiles_to_int @@ List.init 9 @@ Fun.const dt) in
-      aux (i+1) ndt @@ apply dt alg img
+      (* default pixel is determined by previous default pixel. *)
+      let ai = match dp with P.Dark -> 0 | P.Light -> 511 in
+      aux (i+1) alg.(ai) @@ apply alg dp img
   in
-  aux 0 Tile.Dark img
+  (* original default pixel is dark. *)
+  aux 0 P.Dark img
 
 let () =
   let alg, img = IO.read_lines () |> parse in
+  let f n =
+    enhance n alg img |> B.count_occur P.Light |> Printf.printf "%d\n"
+  in
   begin
-    let f n =
-      enhance n alg img
-      |> B.count_occur Tile.Light
-      |> Printf.printf "%d\n"
-    in
-
-    (* PART 1 *)
-    f 2;
-
-    (* PART 2 *)
-    f 50;
+    (* PART 1 *) f 2;
+    (* PART 2 *) f 50;
   end

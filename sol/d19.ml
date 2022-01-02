@@ -57,53 +57,49 @@ module Pos = struct
 end
 
 module PS = Set.Make(Pos)
-
 let parse str =
   Delim.split_line str
   |> List.tl
   |> List.map (fun s -> Scanf.sscanf s "%d,%d,%d" Pos.make)
   |> PS.of_list
 
-(* debug *)
-let print bs =
-  let p = fun (x, y, z) -> Printf.printf "%d,%d,%d\n" x y z in
-  PS.iter p bs
+let origin o = PS.map (fun x -> Pos.sub x o)
 
 let apply o bs =
   PS.map (fun p -> Pos.add p o) bs
 
-let find_relpos s0 bs : Pos.t option =
-  let origin o = PS.map (fun x -> Pos.sub x o) in
-  PS.elements s0
-  |> List.find_map (fun p1 ->
-      let s0 = origin p1 s0 in
+let find_relpos maps bs : Pos.t option =
+  maps
+  |> List.find_map (fun (p1, s0) ->
       PS.elements bs
       |> List.find_opt (fun p2 ->
           let n = origin p2 bs |> PS.inter s0 |> PS.cardinal in
           n >= 12)
-      |> (function
-          | None -> None
-          | Some p2 -> Some (Pos.sub p1 p2)))
+      |> Option.map (fun p2 -> Pos.sub p1 p2))
 
-let find_rot_and_pos s0 maps : (PS.t * Pos.t) option =
-  maps
+let find_rot_and_pos maps rbs : (PS.t * Pos.t) option =
+  rbs
   |> List.find_map (fun (rot, bs) ->
-      match find_relpos s0 bs with
+      match find_relpos maps bs with
       | None -> None
       | Some p -> Some (bs, p))
 
-let rec merge_areas ps s0 sl =
+let rec merge_areas ps map sl =
+  let maps =
+    PS.elements map
+    |> List.map (fun p -> p, origin p map)
+  in
   let pass, rest = sl |> List.partition_map (fun bs ->
-      match find_rot_and_pos s0 bs with
+      match find_rot_and_pos maps bs with
       | None -> Right bs
       | Some (bs, p) -> Left (p, apply p bs))
   in
   let nps, pass = List.split pass in
-  let s0 = List.fold_left PS.union s0 pass in
+  let map = List.fold_left PS.union map pass in
   if pass = [] && rest <> [] then assert false
   else if rest = []
-  then ps @ nps, s0
-  else merge_areas (ps @ nps) s0 rest
+  then ps @ nps, map
+  else merge_areas (ps @ nps) map rest
 
 let largest_manhattan ps =
   List.concat_map
@@ -111,6 +107,7 @@ let largest_manhattan ps =
     ps
   |> List.fold_left max Int.min_int
 
+(* it takes approx. 1m 30s. *)
 let () =
   let data = IO.read_all () |> Delim.split "\n\n" |> List.map parse in
   begin

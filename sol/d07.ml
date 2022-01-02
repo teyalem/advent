@@ -8,8 +8,8 @@ let least_fuel f ns =
 
 let () =
   let data =
-    open_in Sys.argv.(1) |> IO.input_all
-    |> String.trim |> String.split_on_char ','
+    IO.read_all ()
+    |> String.split_on_char ','
     |> map int_of_string
   in
   begin

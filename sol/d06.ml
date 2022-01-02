@@ -1,18 +1,5 @@
 open Ut
 
-(*
-(* naïve method *)
-let tick t =
-  if t = 0 then [6; 8]
-  else [t-1]
-
-(* use with List.length *)
-let rec simulate n fish =
-  if n = 0
-  then fish
-  else simulate (n-1) @@ List.concat_map tick fish
-   *)
-
 let simulate n fish =
   let arr =
     List.fold_left
@@ -32,21 +19,16 @@ let simulate n fish =
   aux 0 arr
   |> Array.fold_left Int.add 0
 
-let days_part1 = 80
-let days_part2 = 256
-
 let () =
   let data =
-    open_in Sys.argv.(1)
-    |> IO.input_all
-    |> String.trim
+    IO.read_all ()
     |> String.split_on_char ','
     |> List.map int_of_string
   in
   begin
     (* PART 1 *)
-    simulate days_part1 data |> Printf.printf "%d\n";
+    simulate 80 data |> Printf.printf "%d\n";
 
     (* PART 2 *)
-    simulate days_part2 data |> Printf.printf "%d\n";
+    simulate 256 data |> Printf.printf "%d\n";
   end

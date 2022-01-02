@@ -1,4 +1,5 @@
 (* crappy code *)
+(* TODO: refactor day 8 *)
 
 open Ut
 open List

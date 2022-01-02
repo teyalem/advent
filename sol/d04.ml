@@ -1,35 +1,22 @@
 open Ut
 
-let parse str =
-  let ic = Scanf.Scanning.from_string str in
-  let scan = Scanf.bscanf in
-  let ns =
-    scan ic "%s@\n" (fun s ->
-        String.split_on_char ',' s
-        |> List.map int_of_string)
-  in
-  let rec pboard () =
-    let b = Array.make_matrix 5 5 0 in
-    try
-      for y = 0 to 4 do
-        for x = 0 to 4 do
-          scan ic " %d" (fun n -> b.(x).(y) <- n)
-        done
-      done;
-      b :: pboard ()
-    with End_of_file -> []
-  in
-  ns, pboard ()
+let parse ss =
+  match ss with
+  | ns :: boards ->
+    let ns =
+      String.split_on_char ',' ns
+      |> List.map int_of_string
+    in
+    let parse_board b =
+      let scan = Scanf.sscanf b " %d" in
+      Mat.init 5 5 (fun _ _ -> scan Fun.id)
+    in
+    ns, List.map parse_board boards
+  | _ -> assert false
 
 let is_bingo marks =
-  let open Array in
-  let is_bingo_col =
-    exists (for_all Fun.id) marks
-  and is_bingo_row =
-    init 5 (fun i -> map (fun l -> l.(i)) marks)
-    |> exists (for_all Fun.id)
-  in
-  is_bingo_row || is_bingo_col
+  let f b = Array.(exists (for_all Fun.id) b) in
+  f marks || f @@ Mat.transpose marks
 
 let numloc n b : int * int =
   let pos = ref (0, 0) in
@@ -44,7 +31,7 @@ let numloc n b : int * int =
   with Exit -> !pos
 
 let bingo ns b : int * int =
-  let marks = Array.make_matrix 5 5 false in
+  let marks = Mat.make 5 5 false in
   let mark n =
     let x, y = numloc n b in
     if x <> -1 then marks.(x).(y) <- true
@@ -55,13 +42,9 @@ let bingo ns b : int * int =
       mark n;
       if is_bingo marks then
         let score =
-          Array.mapi
-            (fun x l ->
-               Array.to_list l
-               |> List.filteri (fun y _ -> not marks.(x).(y))
-               |> List.fold_left Int.add 0)
-            b
-          |> Array.fold_left Int.add 0
+          b
+          |> Mat.mapi (fun x y e -> if not marks.(x).(y) then e else 0)
+          |> Mat.fold Int.add 0
           |> Int.mul n
         in
         i, score
@@ -71,23 +54,16 @@ let bingo ns b : int * int =
   aux 1 ns
 
 let () =
-  let ns, boards = open_in Sys.argv.(1) |> IO.input_all |> parse in
-  begin
-    let res = List.map (bingo ns) boards in
-
-    (* PART 1 *)
-    res
-    |> List.fold_left (fun (pi, ps) (ni, ns) ->
-        if ni < pi then ni, ns else pi, ps)
-      (Int.max_int, -10)
-    |> snd
-    |> Printf.printf "%d\n";
-
-    (* PART 2 *)
-    res
-    |> List.fold_left (fun (pi, ps) (ni, ns) ->
-        if ni > pi then ni, ns else pi, ps)
-      (Int.min_int, -10)
+  let ns, boards = IO.read_all () |> Delim.split "\n\n" |> parse in
+  let res = List.map (bingo ns) boards in
+  let solve f i =
+    res |> List.fold_left
+      (fun (pi, ps) (ni, ns) -> if f ni pi then ni, ns else pi, ps)
+      (i, -10)
     |> snd
     |> Printf.printf "%d\n"
+  in
+  begin
+    (* PART 1 *) solve (<) Int.max_int;
+    (* PART 2 *) solve (>) Int.min_int;
   end
