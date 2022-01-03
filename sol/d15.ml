@@ -21,44 +21,43 @@ module IP = struct
     | v -> v
 end
 
-module Set = Set.Make(IP)
+module M = Map.Make(Int)
 
 let neigh = [ 0, 1; 0, -1; -1, 0; 1, 0 ]
 
 (* find lowest risk by dijkstra's method. *)
 let lowest_risk b =
   let dimx = B.dimx b and dimy = B.dimy b in
-  let d = Array.make_matrix dimx dimy Int.max_int in
-  d.(0).(0) <- 0;
   let visited = Array.make_matrix dimx dimy false in
 
-  let nodes = ref Set.empty in
-  let add x y = nodes := Set.add (d.(x).(y), x, y) !nodes in
-  let next_point () =
-    let (w, x, y) = Set.min_elt !nodes in
-    nodes := Set.remove (w, x, y) !nodes;
-    x, y
+  let q = ref M.empty in
+  let add w x y =
+    match M.find_opt w !q with
+    | None -> q := M.add w (ref [x, y]) !q
+    | Some l -> l := (x, y) :: !l
+  in
+  let rec next () =
+    let w, l = M.min_binding !q in
+    match !l with
+    | [] -> q := M.remove w !q; next ()
+    | (x, y)::ps -> l := ps; w, x, y
   in
 
   (* dijkstra loop *)
-  let rec aux (x, y) =
-    let w = d.(x).(y) in
-    visited.(x).(y) <- true;
-
-    (* get neighbor nodes *)
-    List.map (fun (dx, dy) -> x+dx, y+dy) neigh
-    |> List.filter (fun (x, y) ->
-        0 <= x && x < dimx && 0 <= y && y < dimy)
-    |> List.iter (fun (x, y) ->
-        let w = B.get b x y + w in
-        if w < d.(x).(y) then d.(x).(y) <- w; (* relaxing *)
-        if not visited.(x).(y) then add x y
-      );
-
-    (* repeat until endpoint reached *)
-    if x <> dimx-1 || y <> dimy-1 then aux @@ next_point ()
+  let rec aux (w, x, y) =
+    if x = dimx-1 && y = dimy-1 then w
+    else if visited.(x).(y) then aux @@ next ()
+    else begin
+      visited.(x).(y) <- true;
+      List.map (fun (dx, dy) -> x+dx, y+dy) neigh
+      |> List.filter (fun (x, y) ->
+          0 <= x && x < dimx && 0 <= y && y < dimy)
+      |> List.iter (fun (x, y) ->
+          let w = B.get b x y + w in add w x y);
+        aux @@ next ()
+    end
   in
-  aux (0, 0); d.(dimx-1).(dimy-1)
+  aux (0, 0, 0)
 
 let enlarge b =
   let inc b = Mat.map (fun e -> if e = 9 then 1 else e+1) b in
@@ -68,20 +67,14 @@ let enlarge b =
       (fun a i -> if i > 0 then a.(i) <- inc a.(i-1); a)
       (Array.make 10 b)
   in
-
   List.init 5 (fun i -> List.init 5 (fun j -> i+j))
   |> List.map (List.map (fun i -> t.(i)))
   |> Mat.concat
 
 let () =
   let data = IO.read_lines () |> B.parse in
+  let solve d = lowest_risk d |> Printf.printf "%d\n" in
   begin
-    (* PART 1 *)
-    lowest_risk data
-    |> Printf.printf "%d\n";
-
-    (* PART 2 *)
-    enlarge data
-    |> lowest_risk
-    |> Printf.printf "%d\n";
+    (* PART 1 *) solve data;
+    (* PART 2 *) solve @@ enlarge data;
   end

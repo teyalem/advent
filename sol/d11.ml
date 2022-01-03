@@ -31,11 +31,8 @@ let step b : unit =
         end)
   in
   let rec aux () =
-    if not @@ Queue.is_empty tens then begin
-      let (x, y) = Queue.take tens in
-      flash x y;
-      aux ()
-    end
+    if not @@ Queue.is_empty tens then
+    let x, y = Queue.take tens in begin flash x y; aux () end
   in
   aux ()
 
@@ -60,7 +57,7 @@ let find_sync b =
   aux 1
 
 let () =
-  let data = open_in Sys.argv.(1) |> IO.input_lines |> IB.parse in
+  let data = IO.read_lines () |> IB.parse in
   begin
     (* PART 1 *)
     collect_flash (IB.copy data) 100 |> Printf.printf "%d\n";

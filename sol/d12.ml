@@ -34,7 +34,6 @@ let collect_paths_part1 g =
       |> List.concat_map (fun nb -> aux (nb :: rpath))
   in
   aux ["start"]
-  |> List.map List.rev
 
 let collect_paths_part2 g =
   let rec aux rpath twice =
@@ -51,7 +50,7 @@ let collect_paths_part2 g =
           aux (nb :: rpath)
             (twice || is_lowercase nb.[0] && List.mem nb rpath))
   in
-  aux ["start"] false |> List.map List.rev
+  aux ["start"] false
 
 let () =
   let data = IO.input_lines stdin |> List.map parse |> to_graph in

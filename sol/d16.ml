@@ -116,9 +116,6 @@ let hex_to_bits str =
 let () =
   let data, _ = IO.read_all () |> hex_to_bits |> BITS.parse in
   begin
-    (* PART 1 *)
-    BITS.sum_version data |> Printf.printf "%d\n";
-
-    (* PART 2 *)
-    BITS.evaluate data |> Printf.printf "%d\n";
+    (* PART 1 *) BITS.sum_version data |> Printf.printf "%d\n";
+    (* PART 2 *) BITS.evaluate data |> Printf.printf "%d\n";
   end

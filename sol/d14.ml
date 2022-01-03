@@ -28,15 +28,13 @@ let inc tbl k amount : unit =
 let insert_pair rules polymap : pairtbl =
   let keys (a, b) x = (a, x), (x, b) in
   let updates = ref [] in
-  Hashtbl.iter
-    (fun pair count ->
-       match List.assoc_opt pair rules with
-       | None -> ()
-       | Some x ->
-         let amount = !count and ka, kb = keys pair x in
-         count := 0; (* pair no longer exists *)
-         updates := (ka, amount) :: (kb, amount) :: !updates)
-    polymap;
+  polymap |> Hashtbl.iter (fun pair count ->
+      match List.assoc_opt pair rules with
+      | None -> ()
+      | Some x ->
+        let amount = !count and ka, kb = keys pair x in
+        count := 0; (* pair no longer exists *)
+        updates := (ka, amount) :: (kb, amount) :: !updates);
   (* apply updates *)
   List.iter (fun (k, a) -> inc polymap k a) !updates;
   polymap
@@ -78,9 +76,6 @@ let () =
   let template, rules = IO.read_lines () |> parse in
   let solve = solve template rules in
   begin
-    (* PART 1 *)
-    solve 10;
-
-    (* PART 2 *)
-    solve 40;
+    (* PART 1 *) solve 10;
+    (* PART 2 *) solve 40;
   end
