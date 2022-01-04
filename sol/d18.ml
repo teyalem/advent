@@ -1,6 +1,12 @@
 open Ut
 
-module Tile = struct
+let is_lowercase c = 'a' <= c && c <= 'z'
+let is_uppercase c = 'A' <= c && c <= 'Z'
+
+module C = Set.Make(Char)
+module P = Pheap.Make(Int)
+
+module T = struct
   type t = char
   let default = '.'
   let of_char c = c
@@ -8,132 +14,210 @@ module Tile = struct
 end
 
 module Map = struct
-  module B = Block.Make(Tile)
+  include Block.Make(T)
 
-  include B
-  include BlockBoard.Make(B)
-
-  let find_entity f map =
+  let find_pos f map =
     let pos = ref (0, 0) in
-    iteri (fun x y c -> if f c then pos := (x, y) else ()) map;
-    !pos
+    try
+      map |> iteri (fun x y c ->
+          if f c then begin
+            pos := (x, y); raise Exit
+          end);
+      raise Not_found
+    with Exit -> !pos
 
   let find_all f map =
     let result = ref [] in
     iteri (fun x y c -> if f c then result := (x, y) :: !result) map;
     !result
-
 end
 
-let dir = [ 0, -1; 1, 0; 0, 1; -1, 0 ]
+module K : Pathfind.StateSpace
+  with type space = Map.t
+   and type state = int * int
+   and type data = char * int * C.t =
+struct
+  type space = Map.t
+  type state = int * int
+  type data = char * int * C.t
 
-let is_lowercase c = 'a' <= c && c <= 'z'
-let is_uppercase c = 'A' <= c && c <= 'Z'
+  let data_id = '_', 0, C.empty
 
-let either a b = fun c -> a c || b c
+  let is_end m ((x, y), (t, d, _)) =
+    d <> 0 && is_lowercase t || t = '@'
 
-let is_alphabet = either is_lowercase is_uppercase
+  let neighbors m (pos, (_, d, doors)) =
+    Neigh.(neighbors von_neumann pos)
+    |> List.filter (fun (x, y) ->
+        0 <= x && x < Mat.dimx m && 0 <= y && y < Mat.dimy m)
+    |> List.filter (fun (x, y) -> Mat.get m x y <> '#')
+    |> List.map (fun (x, y) ->
+        let t = Mat.get m x y in
+        let doors = if is_uppercase t then C.add t doors else doors in
+        (x, y), (t, d+1, doors))
+end
 
-let to_uppercase c =
-  if is_lowercase c
-  then Char.(code c - code 'a' + code 'A' |> chr)
-  else c
+type graph = (char, (char * int * C.t) list) Hashtbl.t
 
-let to_lowercase c =
-  if is_uppercase c
-  then Char.(code c - code 'A' + code 'a' |> chr)
-  else c
-
-let group_by (f: 'a -> 'b) (l: 'a list) : 'a list list =
-  List.fold_right (fun n (prev, p) ->
-      match prev with
-        None -> Some [n], p
-      | Some l ->
-        if f n = f (List.hd l)
-        then Some (n::l), p
-        else Some [n], l::p)
-    l
-    (None, [])
-  |> (fun (p, l) -> (Option.get p)::l)
-
-let collect_dests map start =
-  let q = Queue.create () in
-  let rec bfs () =
-    if Queue.is_empty q
-    then []
-    else
-      let pos, dis = Queue.pop q in
-      let t = Map.get_cell map pos |> Option.get in
-
-      if is_alphabet t || t = '@'
-      then (pos, t, dis) :: bfs ()
-      else if t = '#'
-      then bfs ()
-
-      else begin
-        Map.set_cell map pos '#';
-        List.map (Coord.add pos) dir
-        |> List.filter (fun pos -> Map.get_cell map pos <> (Some '#'))
-        |> List.iter (fun pos -> Queue.push (pos, dis+1) q);
-        bfs ()
-      end
-  in
-
-  Map.set_cell map start '.';
-  Queue.push (start, 0) q;
-  bfs ()
-
-let find_starting_point map =
-  Map.find_entity ((=) '@') map
-
-let find_keys map =
-  Map.find_all is_lowercase map
-  |> List.map (fun (x, y) -> (x, y), Map.get map x y)
-
-let find_doors map =
-  Map.find_all is_uppercase map
-  |> List.map (fun (x, y) -> (x, y), Map.get map x y)
-
-let make_graph map : (char, (char * int) list) Hashtbl.t =
-  let start = find_starting_point map
-  and keys = find_keys map
-  and doors = find_doors map in
-
-  List.map (fun (pos, c) ->
-      c, collect_dests (Map.copy map) pos
-         |> List.map (fun (_, t, dis) -> t, dis)
-         |> List.sort (fun a b -> compare (fst a) (fst b))
-
-         |> group_by fst
-         |> List.map (fun l ->
-             List.(fold_left
-                     (fun (_, pdis) (t, dis) ->
-                        if pdis < dis then t, pdis else t, dis)
-                     (hd l)
-                     (tl l))))
-    ((start, '@') :: keys @ doors)
+let make_graph f map =
+  let entrances = Map.find_all f map
+  and keys = Map.find_all is_lowercase map in
+  entrances @ keys
+  |> List.map (fun (x, y) ->
+      Map.get map x y,
+      Pathfind.bfs_collect (module K) ~start: (x, y) map)
   |> List.to_seq
   |> Hashtbl.of_seq
 
-(* implementing dijkstra's algorithm *)
-let find_shortest_route graph keyn start = begin
+let all_keys = ref C.empty
 
+module G : Pathfind.WeightedGraph
+  with type space = graph
+   and type state = char * C.t
+   and type data = char list
+   and type weight = int =
+struct
+  type space = graph
+  type state = char * C.t
+  type data = char list
+  type weight = int
+
+  let data_id = []
+
+  let is_end g ((_, ks), _) =
+    C.equal ks !all_keys
+
+  let neighbors g ((k, ks), pos) =
+    Hashtbl.find g k
+    |> List.filter (fun (c, _, ds) ->
+        C.(subset (map Char.lowercase_ascii ds) ks))
+    |> List.map (fun (c, d, _) ->
+        let ks = if is_lowercase c then C.add c ks else ks in
+        d, (c, ks), c::pos)
 end
 
-let print_graph graph = begin
-  Printf.printf "digraph G {\n";
-  Hashtbl.iter (fun k v ->
-      List.iter (fun (t, _) -> Printf.printf "\"%c\" -> \"%c\"\n" k t) v)
-    graph;
-  Printf.printf "}";
-end
-
-let main path =
-  let data = open_in path |> IO.read_lines |> Map.parse in
-  begin
-    (* PART 1 *)
-    let graph = make_graph data in
-
+(* Dijkstra *)
+let find_way_p1 graph =
+  let module State = struct
+    type t = char * C.t
+    let compare (a, b) (c, d) =
+      match Char.compare a c with
+      | 0 -> C.compare b d
+      | v -> v
   end
+  in
+  let module S = Set.Make(State) in
+  let q = ref @@ P.create () in
+  let visited = ref S.empty in
+  let add (w, st, ps) = q := P.insert w (st, ps) !q in
+  let rec next () =
+    let w, ((c, ks), ps) = P.find_min !q in
+    q := P.delete_min !q;
+    if S.mem (c, ks) !visited
+    then next ()
+    else w, c, ks, ps
+  in
+  let rec aux (w, c, ks, ps) =
+    if G.is_end graph ((c, ks), ps) then w, ps
+    else begin
+      visited := S.add (c, ks) !visited;
+      G.neighbors graph ((c, ks), ps)
+      |> List.map (fun (cost, st, ps) -> w + cost, st, ps)
+      |> List.iter add;
+      aux @@ next ()
+    end
+  in
+  let w, ps = aux (0, '@', C.empty, []) in
+  w
 
-let () = Arg.parse [] main ""
+module G2 : Pathfind.WeightedGraph
+  with type space = graph
+   and type state = char list * C.t
+   and type data = (int * char) list
+   and type weight = int =
+struct
+  type space = graph
+  type state = char list * C.t
+  type data = (int * char) list
+  type weight = int
+
+  let data_id = []
+
+  let is_end g ((_, ks), _) =
+    C.equal ks !all_keys
+
+  let neighbors g ((ps, ks), ms) =
+    ps
+    |> List.mapi (fun i k ->
+        Hashtbl.find g k
+        |> List.filter (fun (c, _, ds) ->
+            C.(subset (map Char.lowercase_ascii ds) ks))
+        |> List.map (fun (c, d, _) ->
+            let ks = if is_lowercase c then C.add c ks else ks in
+            i, d, c, ks, (i, c)::ms))
+    |> List.concat_map (List.map (fun (i, d, c, ks, ms) ->
+        let ps = List.mapi (fun j x -> if j = i then c else x) ps in
+        d, (ps, ks), ms))
+end
+
+(* Dijkstra *)
+let find_way_p2 graph =
+  let module State = struct
+    type t = char list * C.t
+    let compare (a, b) (c, d) =
+      match List.compare Char.compare a c with
+      | 0 -> C.compare b d
+      | v -> v
+  end
+  in
+  let module S = Set.Make(State) in
+  let q = ref @@ P.create () in
+  let visited = ref S.empty in
+  let add (w, st, ps) = q := P.insert w (st, ps) !q in
+  let rec next () =
+    let w, ((ps, ks), ms) = P.find_min !q in
+    q := P.delete_min !q;
+    if S.mem (ps, ks) !visited
+    then next ()
+    else w, ps, ks, ms
+  in
+  let rec aux (w, ps, ks, ms) =
+    if G2.is_end graph ((ps, ks), ms) then w, ms
+    else begin
+      visited := S.add (ps, ks) !visited;
+      G2.neighbors graph ((ps, ks), ms)
+      |> List.map (fun (cost, st, ms) -> w + cost, st, ms)
+      |> List.iter add;
+      aux @@ next ()
+    end
+  in
+  let w, ps = aux (0, ['1'; '2'; '3'; '4'], C.empty, []) in
+  w
+
+let modify map =
+  let x, y = Map.find_pos ((=) '@') map in
+  [[ '1'; '#'; '2' ];
+   [ '#'; '#'; '#' ];
+   [ '3'; '#'; '4' ];]
+  |> List.iteri (fun dy l ->
+      l |> List.iteri (fun dx c ->
+          Map.set map (x-1+dx) (y-1+dy) c))
+
+let () =
+  let data = IO.read_lines () |> Map.parse in
+  begin
+    all_keys :=
+      Map.find_all is_lowercase data
+      |> List.map (fun (x, y) -> Map.get data x y)
+      |> C.of_list;
+
+    (* PART 1 *)
+    let g = make_graph ((=) '@') data in
+    g |> find_way_p1 |> Printf.printf "%d\n";
+
+    (* PART 2 *)
+    modify data;
+    let is_ent c = '1' <= c && c <= '4' in
+    let g = make_graph is_ent data in
+    g |> find_way_p2 |> Printf.printf "%d\n";
+  end
