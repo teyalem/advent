@@ -173,8 +173,7 @@ let find_min_cost g =
       aux @@ next ()
     else begin
       Hashtbl.add gc g c; (* we visited this *)
-      let loc = gather_loc g in
-      loc
+      gather_loc g
       |> List.map (fun (b, loc) -> b, possible_moves g b loc)
       |> List.concat_map (fun (b, moves) ->
           List.map (fun m -> cost g b m, m) moves)
