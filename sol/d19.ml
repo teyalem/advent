@@ -2,50 +2,35 @@ open Ut
 
 let check_pos code x y =
   let m = IntCode.load code in
-  IntCode.set_input m x;
-  IntCode.set_input m y;
+  IntCode.push_input m x;
+  IntCode.push_input m y;
   IntCode.run m;
-  IntCode.get_output m = 1
+  IntCode.pop_output m = 1
 
-let main path =
-  let data = open_in path |> IO.read_file |> IntCode.parse_code in
+let () =
+  let data = IO.read_all () |> IntCode.parse_code in
+  let check_pos = check_pos data in
   begin
-    let check_pos = check_pos data in
-
     (* PART 1 *)
     let c = ref 0 in
     for x = 0 to 49 do
       for y = 0 to 49 do
-        if check_pos x y
-        then incr c
-        else ()
+        if check_pos x y then incr c
       done
     done;
-    print_int !c;
-
-    print_newline ();
+    Printf.printf "%d\n" !c;
 
     (* PART 2 *)
-    (* SLOW. is there any shortcut? *)
-    let pos = ref (0, 0) in
-    try
-      for x = 100 to 10000 do
-        for y = 100 to 10000 do
-          if check_pos x y
-          && check_pos (x+99) y
-          && check_pos x (y+99)
-          then begin
-            pos := (x, y);
-            raise Exit
-          end
-          else ()
-        done
+    (* credit to /u/4HbQ
+     * https://www.reddit.com/r/adventofcode/comments/ecogl3/comment/fbdmn5n *)
+    let x = ref 0 and y = ref 0 in
+    while not @@ check_pos (!x+99) !y do
+      incr y;
+      while not @@ check_pos !x (!y+99) do
+        incr x
       done
-    with Exit -> ();
+    done;
 
-    !pos
-    |> (fun (x, y) -> Printf.printf "%d" (x * 10000 + y))
-
+    let x, y = !x, !y in
+    Printf.printf "%d\n" (x * 10000 + y)
   end
-
-let () = Arg.parse [] main ""
