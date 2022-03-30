@@ -53,6 +53,7 @@ module Image = struct
   let assemble (blocks: block_list) : graph =
     let open List in
     (* predicate: test a and b is the same edge *)
+    let rev_array a = Array.(to_list a |> List.rev |> of_list) in
     let is_same_edge a b = a = b || a = rev_array b in
 
     (* map block association list to edge list *)

@@ -10,38 +10,34 @@ let parse_policy_pass rule line =
       (fun a b ch pass -> (rule a b ch), pass)
 
 (* Part 1 *)
-let rule_a s e ch = fun pass ->
-  let index = String.index pass ch
-  and range = Range.make s e
-  in Range.contains range index
+let rule1 s e ch = fun pass ->
+  let n =
+    String.to_seq pass
+    |> Seq.filter ((=) ch)
+    |> List.of_seq
+    |> List.length
+  in
+  s <= n && n <= e
 
 (* Part 2 *)
-let rule_b a b ch = fun pass ->
+let rule2 a b ch = fun pass ->
   let ca = pass.[a-1] = ch
-  and cb = pass.[b-1] = ch
-  in ca <> cb
+  and cb = pass.[b-1] = ch in
+  ca <> cb
 
 (* count valid passwords *)
 let count_valid l =
   List.filter (fun (pol, pass) -> pol pass) l
   |> List.length
 
-let main path =
-  let data = open_in path |> IO.input_lines in
-  let make_list rule = List.map (parse_policy_pass rule) data in
+let () =
+  let data = IO.read_lines () in
+  let f rule =
+    List.map (parse_policy_pass rule) data
+    |> count_valid
+    |> Printf.printf "%d\n";
+  in
   begin
-    (* PART 1 *)
-    make_list rule_a
-    |> count_valid
-    |> print_int;
-
-    print_newline ();
-
-    (* PART 2 *)
-    make_list rule_b
-    |> count_valid
-    |> print_int
-
+    (* PART 1 *) f rule1;
+    (* PART 2 *) f rule2;
   end
-
-let _ = Arg.parse [] main ""

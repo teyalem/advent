@@ -1,13 +1,12 @@
 open Ut
 
 module Rule = struct
-  open Range
-  type t = range * range
+  type t = (int * int) * (int * int)
 
   let rule r1 r2 = r1, r2
 
-  let check num (r1, r2) =
-    contains r1 num || contains r2 num
+  let check n ((a, b), (c, d)) =
+    (a <= n && n <= b) || (c <= n && n <= d)
 
   (* parse a rule *)
   let parse str =
@@ -69,7 +68,7 @@ module Ticket = struct
   type t = int list
 
   let is_valid rules t =
-    List.exists (fun n -> Rules.is_all_invalid n rules) t |> not
+    not @@ List.exists (fun n -> Rules.is_all_invalid n rules) t
 
   let parse str =
     Delim.split "," str
@@ -99,9 +98,9 @@ let parse_note str =
     | [a; b; c] -> a, b, c
     | _ -> assert false
   in
-  ( Rules.parse rules,
-    parse_my_ticket my_t,
-    parse_tickets nearby_ts)
+  Rules.parse rules,
+  parse_my_ticket my_t,
+  parse_tickets nearby_ts
 
 let find_invalid_nums rules ticket =
   List.filter (fun num -> Rules.is_all_invalid num rules) ticket
@@ -116,8 +115,7 @@ let main path =
     |> List.filter_map (
       function [] -> None
              | [n] -> Some n
-             | _ -> assert false
-    )
+             | _ -> assert false)
     |> sum
     |> print_int;
 

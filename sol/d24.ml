@@ -9,23 +9,29 @@ module Direction = struct
 
   let all_directions = [ East; SouthEast; SouthWest; West; NorthWest; NorthEast ]
 
-  let rec parse s =
-    match Stream.next s with
-    | 'e' -> East
-    | 'w' -> West
+  let rec parse_aux s =
+    let d, s = Seq.uncons s |> Option.get in
+    match d with
+    | 'e' -> East, s
+    | 'w' -> West, s
     | 's' -> begin
-        match parse s with
-        | East -> SouthEast
-        | West -> SouthWest
+        let d, s = parse_aux s in
+        match d with
+        | East -> SouthEast, s
+        | West -> SouthWest, s
         | _ -> assert false
       end
     | 'n' -> begin
-        match parse s with
-        | East -> NorthEast
-        | West -> NorthWest
+        let d, s = parse_aux s in
+        match d with
+        | East -> NorthEast, s
+        | West -> NorthWest, s
         | _ -> assert false
       end
     | _ -> assert false
+
+  let parse s =
+    try Some (parse_aux s) with _ -> None
 
 end
 
@@ -79,18 +85,16 @@ end
 (* a floor block *)
 module Floor = struct
 
-  module B = Block.Make(Tile)
-  module Board = BlockBoard.Make(B)
-
+  module B = BlockBoard.Make(Tile)
   include B
-  include Board
-  include CellularAutomata.Make(Board)(HexagonalPosition)(Tile)
+
+  let next_state = CellularAutomata.make_automata (module B)
 
   let flip_tiles floor dirlists =
     let flip_one dirs =
       let x, y  = HexagonalPosition.find_pos dirs in
       let x, y = x + dimx floor / 2, y + dimy floor / 2 in (* move pos to center *)
-      set floor x y @@ Tile.flip @@ get floor x y
+      set floor (x, y) @@ Tile.flip @@ Option.get @@ get floor (x, y)
     in
     List.iter flip_one dirlists
 
@@ -98,15 +102,13 @@ end
 
 (* parse a line of directions *)
 let rec parse_directions s =
-  match Stream.peek s with
-  | Some _ ->
-    let dir = Direction.parse s in
-    dir :: parse_directions s
+  match Direction.parse s with
+  | Some (d, s) -> d :: parse_directions s
   | None -> []
 
 (* parse input data of AoC 2020 Day 24 *)
 let parse_data str =
-  let lines = Delim.split_line str |> List.map Stream.of_string in
+  let lines = Delim.split_line str |> List.map String.to_seq in
   List.map parse_directions lines
 
 let main path =

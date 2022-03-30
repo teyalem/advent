@@ -17,7 +17,7 @@ module Code = struct
     |> List.map (fun (i, n) -> 35 - i, n) (* just used fixed number *)
 
   let parse str =
-    if starts_with "mask" str then
+    if String.starts_with ~prefix: "mask" str then
       Scanf.sscanf str "mask = %s" (fun s -> Mask (parse_mask s))
     else
       Scanf.sscanf str "mem[%d] = %d" (fun i n -> Assign (i, n))
@@ -74,7 +74,7 @@ let apply_mask_2 mask idx =
     | (i, n) :: mask -> begin
         match n with
         | -1 ->
-          let os = List.map Array.copy bsl in
+          let os = List.map Bitarray.copy bsl in
           List.iter (fun bs -> Bitarray.set bs i 0) os;
           List.iter (fun bs -> Bitarray.set bs i 1) bsl;
           inner (os @ bsl) mask
