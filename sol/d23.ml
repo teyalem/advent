@@ -48,7 +48,7 @@ let is_room_door = function
   | 2 | 4 | 6 | 8 -> true
   | _ -> false
 
-let distance { room; room_size } = function
+let distance { room; room_size; _ } = function
   | In (i, b) ->
     abs (i - room_door b)
     + (room_size - List.length room.(roomid b))
@@ -116,7 +116,7 @@ let gather_loc g : (brood * loc) list =
 let cost g b m =
   step_cost b * distance g m
 
-let do_move { hallway; room } = function
+let do_move { hallway; room; _ } = function
   | In (i, b) ->
     let e = Option.get hallway.(i) in
     hallway.(i) <- None;
@@ -138,7 +138,7 @@ let is_stuck g loc =
         end
       | _, _ -> false)
 
-let is_finished { room; room_size } =
+let is_finished { room; room_size; _ } =
   let open List in
   Array.to_list room
   |> map2 (fun b r -> b, r) [A; B; C; D]

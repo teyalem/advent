@@ -79,7 +79,7 @@ let find_relpos maps bs : Pos.t option =
 
 let find_rot_and_pos maps rbs : (PS.t * Pos.t) option =
   rbs
-  |> List.find_map (fun (rot, bs) ->
+  |> List.find_map (fun (_, bs) ->
       match find_relpos maps bs with
       | None -> None
       | Some p -> Some (bs, p))

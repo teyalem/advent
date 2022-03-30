@@ -4,7 +4,7 @@ module IntTile = struct
   type t = int
   let default = 0
   let of_char c = Char.(code c - code '0')
-  let to_char c = assert false
+  let to_char _ = assert false
 end
 
 module IB = Block.Make(IntTile)

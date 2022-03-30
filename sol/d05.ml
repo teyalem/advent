@@ -24,7 +24,7 @@ let paint b ((x1, y1), (x2, y2)) =
 
 let count b =
   let cnt = ref 0 in
-  Mat.iteri (fun x y n -> if n >= 2 then incr cnt) b;
+  Mat.iteri (fun _ _ n -> if n >= 2 then incr cnt) b;
   !cnt
 
 let size = 1000

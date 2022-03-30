@@ -19,7 +19,7 @@ type p =
   | Push of int
   | Pop of int
 
-let rec transform p =
+let transform p =
   let open List in
   let split ps : (string * string * value) list list =
     fold_left (fun n (c, _, _ as inst) ->

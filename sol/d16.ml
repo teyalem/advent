@@ -73,13 +73,13 @@ module BITS = struct
         let ps, bs = aux np bs in
         pack ver id ps, bs
 
-  let rec sum_version { version; data } =
+  let rec sum_version { version; data; _ } =
     version +
     match data with
     | Literal _ -> 0
     | Packets ps -> List.map sum_version ps |> sum
 
-  let rec evaluate { typeid; data } =
+  let rec evaluate { typeid; data; _ } =
     let data = match data with
       | Literal n -> [n]
       | Packets ps -> List.map evaluate ps

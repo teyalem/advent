@@ -30,7 +30,7 @@ let do_action2 z (w, n) =
 let parse =
   List.map (fun s -> Scanf.sscanf s "%s %d" (fun w n -> w, n))
 
-let print { horz; depth } =
+let print { horz; depth; _ } =
   Printf.printf "%d\n" (horz * depth)
 
 let () =

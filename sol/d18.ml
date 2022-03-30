@@ -22,7 +22,7 @@ let rec inc_rr x = function
   | Node (a, b) -> cons a (inc_rr x b)
 
 let rec explode l = function
-  | Leaf n -> None
+  | Leaf _ -> None
   | Node (a, b) ->
     if l >= 4 then
       Some (Leaf 0, num a, num b)

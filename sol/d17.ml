@@ -1,5 +1,3 @@
-open Ut
-
 let parse str =
   Scanf.sscanf str "target area: x=%d..%d, y=%d..%d"
     (fun a b c d -> (a, b), (c, d))
@@ -20,7 +18,7 @@ let sign n =
 
 (* brute-force with heuristic *)
 let all_initvel (xl, xh) (yl, yh) =
-  let rec probe dx dy =
+  let probe dx dy =
     let rec aux x y dx dy =
       if xl <= x && x <= xh && yl <= y && y <= yh then true
       else if x > xh || y < yl then false
