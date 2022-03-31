@@ -1,5 +1,3 @@
-open Ut
-
 let to_digit c =
   Char.(code c - code '0')
 
