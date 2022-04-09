@@ -35,16 +35,15 @@ end
 
 module Map = struct
 
-  module B = Block.Make(Tile)
-  module Board = BlockBoard.Make(B)
+  module Board = BlockBoard.Make(Tile)
 
-  include B
   include Board
-  include CellularAutomata.Make(Board)(Pos)(Tile)
 
   (* handy function *)
-  let get_rel b x y = get b (dimx b/2 + x) (dimy b/2 + y)
-  let set_rel b x y c = set b (dimx b/2 + x) (dimy b/2 + y) c
+  let get_rel b x y = get b (dimx b/2 + x, dimy b/2 + y) |> Option.get
+  let set_rel b x y c = set b (dimx b/2 + x, dimy b/2 + y) c
+
+  let next_state = CellularAutomata.make_automata (module Board)
 
 end
 
@@ -71,10 +70,10 @@ module Bot = struct
     let x, y = Pos.of_dir d in
     let x = b.x + x
     and y = b.y + y in
-    IntCode.set_input b.vm d;
+    IntCode.push_input b.vm d;
     IntCode.run b.vm;
     b.dis <- b.dis + 1;
-    match IntCode.get_output b.vm with
+    match IntCode.pop_output b.vm with
       0 -> x, y, Tile.Wall
     | 1 ->
       b.x <- x;
@@ -106,9 +105,7 @@ module Bot = struct
               let b = copy bot in
               let x, y, t = run b d in
               Map.set_rel map x y t;
-              if t <> Tile.Wall
-              then Some b
-              else None)
+              if t <> Tile.Wall then Some b else None)
         in
 
         begin
@@ -132,8 +129,8 @@ let fill_oxygen map =
   in
   loop 1
 
-let main path =
-  let data = open_in path |> IO.read_file |> IntCode.parse_code in
+let () =
+  let data = IO.read_all () |> IntCode.parse_code in
   begin
     (* PART 1 *)
     let dis, map = Bot.explore data in
@@ -142,5 +139,3 @@ let main path =
     (* PART 2 *)
     fill_oxygen map |> Printf.printf "%d\n"
   end
-
-let () = Arg.parse [] main ""

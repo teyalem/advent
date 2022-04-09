@@ -109,8 +109,8 @@ module Map = struct
 
 end
 
-let main path =
-  let data = open_in path |> IO.read_lines |> Map.parse in
+let () =
+  let data = IO.read_lines () |> Map.parse in
   begin
     (* PART 1 *)
     let location, observable_asteroid =
@@ -132,5 +132,3 @@ let main path =
     |> print_int;
 
   end
-
-let () = Arg.parse [] main ""

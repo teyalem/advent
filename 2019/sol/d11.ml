@@ -71,13 +71,13 @@ module Bot = struct
       let c = Hashtbl.find_opt tiles (x, y)
               |> Option.value ~default: Color.Black
       in
-      IntCode.set_input m @@ Color.to_int c;
+      IntCode.push_input m @@ Color.to_int c;
       IntCode.run m;
 
-      let color = Color.of_int @@ IntCode.get_output m in
+      let color = Color.of_int @@ IntCode.pop_output m in
       Hashtbl.replace tiles (x, y) color;
 
-      let turn = IntCode.get_output m in
+      let turn = IntCode.pop_output m in
       bot.dir <-
         if turn = 0
         then Direction.turn_left bot.dir
@@ -99,13 +99,13 @@ module Bot = struct
       let x, y = bot.pos in
       Hull.get hull x y
       |> Color.to_int 
-      |> IntCode.set_input m;
+      |> IntCode.push_input m;
       IntCode.run m;
 
-      let color = Color.of_int @@ IntCode.get_output m in
+      let color = Color.of_int @@ IntCode.pop_output m in
       Hull.set hull x y color;
 
-      let turn = IntCode.get_output m in
+      let turn = IntCode.pop_output m in
       bot.dir <-
         if turn = 0
         then Direction.turn_left bot.dir
@@ -122,8 +122,8 @@ module Bot = struct
 
 end
 
-let main path =
-  let data = open_in path |> IO.read_file |> IntCode.parse_code in
+let () =
+  let data = IO.read_all () |> IntCode.parse_code in
   begin
     (* PART 1 *)
     let n = Bot.count_painted (Bot.init ()) data in
@@ -137,5 +137,3 @@ let main path =
     Hull.print hull;
 
   end
-
-let _ = Arg.parse [] main ""

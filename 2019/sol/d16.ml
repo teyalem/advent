@@ -43,8 +43,8 @@ let reverse_fft tbl offset last : (int, int) Hashtbl.t =
   ntbl
 
 (* Too, too slow.... *)
-let main path =
-  let data = open_in path |> IO.read_file |> String.to_seq
+let () =
+  let data = IO.read_all () |> String.to_seq
              |> Seq.map (fun c -> int_of_string @@ String.make 1 c)
              |> List.of_seq
   in
@@ -73,5 +73,3 @@ let main path =
         done)
 
   end
-
-let () = Arg.parse [] main ""

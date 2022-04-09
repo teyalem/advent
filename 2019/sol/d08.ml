@@ -56,8 +56,8 @@ let select f mf a b =
   then a
   else b
 
-let main path =
-  let data = open_in path |> IO.read_file |> Image.parse_layers in
+let () =
+  let data = IO.read_all () |> Image.parse_layers in
   begin
     (* PART 1 *)
     let fewest_zeros = List.fold_left
@@ -76,5 +76,3 @@ let main path =
     Image.print img
 
   end
-
-let () = Arg.parse [] main ""

@@ -1,7 +1,7 @@
 open Ut
 
-let main path =
-  let data = open_in path |> IO.read_file |> IntCode.parse_code in
+let () =
+  let data = IO.read_all () |> IntCode.parse_code in
   begin
     (* PART 1 *)
     let m = IntCode.load data in
@@ -13,9 +13,9 @@ let main path =
         "AND D J";
         "WALK\n"; ]
     in
-    String.iter (fun c -> IntCode.set_input m @@ int_of_char c) @@ String.concat "\n" prog;
+    String.iter (fun c -> IntCode.push_input m @@ int_of_char c) @@ String.concat "\n" prog;
     IntCode.run m;
-    IntCode.flush_output m |> print_int;
+    IntCode.flush_ascii m |> print_int;
 
     print_newline ();
 
@@ -35,9 +35,7 @@ let main path =
 
         "RUN\n"; ]
     in
-    String.iter (fun c -> IntCode.set_input m @@ int_of_char c) @@ String.concat "\n" prog;
+    String.iter (fun c -> IntCode.push_input m @@ int_of_char c) @@ String.concat "\n" prog;
     IntCode.run m;
-    IntCode.flush_output m |> print_int;
+    IntCode.flush_ascii m |> print_int;
   end
-
-let () = Arg.parse [] main ""

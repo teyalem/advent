@@ -96,8 +96,8 @@ let parse_wires l =
     parse_wire one, parse_wire two
   | _ -> assert false
 
-let main path =
-  let one, two = open_in path |> IO.read_lines |> parse_wires in
+let () =
+  let one, two = IO.read_lines () |> parse_wires in
   begin
     (* PART 1 *)
     let len = 20000 in
@@ -116,5 +116,3 @@ let main path =
     |> List.fold_left min max_int
     |> print_int;
   end
-
-let () = Arg.parse [] main ""

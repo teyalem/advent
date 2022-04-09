@@ -35,16 +35,16 @@ module Game = struct
                  m = IntCode.load c;
                  scr = Screen.make 44 21; }
 
-  let set_free g = IntCode.set g.m 0 2
+  let set_free g = IntCode.poke g.m 0 2
   let print_screen g =
     Screen.print g.scr
 
   let update_screen g =
     let rec loop () =
       let open IntCode in
-      let x = get_output g.m in
-      let y = get_output g.m in
-      let c = get_output g.m in
+      let x = pop_output g.m in
+      let y = pop_output g.m in
+      let c = pop_output g.m in
 
       if x = -1 && y = 0
       then begin g.score <- c; Printf.printf "score: %d\n" c end
@@ -72,7 +72,7 @@ module Game = struct
         | "d" -> 1
         | _ -> 0
       in
-      set_input g.m p;
+      push_input g.m p;
       run g.m;
       update_screen g;
 
@@ -89,9 +89,9 @@ module Game = struct
     let paddle =
       match
         for i = 0 to len - 4 do
-          if get g.m i = 0
-          && get g.m (i+1) = 3
-          && get g.m (i+2) = 0
+          if peek g.m i = 0
+          && peek g.m (i+1) = 3
+          && peek g.m (i+2) = 0
           then raise (Return i)
           else ()
         done
@@ -99,9 +99,9 @@ module Game = struct
     in
     try
       for i = paddle to len do
-        if get g.m i = 1 && get g.m (i+1) > 4
+        if peek g.m i = 1 && peek g.m (i+1) > 4
         then raise Exit
-        else set g.m i 1
+        else poke g.m i 1
       done
     with _ -> ()
 
@@ -112,7 +112,7 @@ module Game = struct
     let score_table =
       let s = ref 0 in 
       match for i = 0 to len - 1 do
-          if get g.m i = 1 && get g.m (i+1) > 4
+          if peek g.m i = 1 && peek g.m (i+1) > 4
           then begin s := i+1; raise Exit end
           else ()
         done
@@ -122,14 +122,14 @@ module Game = struct
     let dimx = Screen.dimx g.scr in
     Screen.iteri (fun x y c ->
         if c = Tile.Block
-        then score := !score + (get g.m (score_table + y*dimx + x))
+        then score := !score + (peek g.m (score_table + y*dimx + x))
         else ()) g.scr;
     !score
 
 end
 
-let main path =
-  let data = open_in path |> IO.read_file |> IntCode.parse_code in
+let () =
+  let data = IO.read_all () |> IntCode.parse_code in
   begin
     (* PART 1 *)
     let g = Game.load data in
@@ -148,5 +148,3 @@ let main path =
     Game.print_screen g;
     print_int g.score;
   end
-
-let _ = Arg.parse [] main ""

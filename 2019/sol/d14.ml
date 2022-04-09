@@ -116,8 +116,8 @@ module Reaction = struct
 
 end
 
-let main path =
-  let data = open_in path |> IO.read_lines |> List.map Reaction.parse in
+let () =
+  let data = IO.read_lines () |> List.map Reaction.parse in
   begin
     (* PART 1 *)
     let one_fuel = Reaction.calculate_ore [1, "FUEL"] data in
@@ -135,5 +135,3 @@ let main path =
     print_int fuels;
 
   end
-
-let () = Arg.parse [] main ""

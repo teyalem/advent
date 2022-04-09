@@ -16,7 +16,7 @@ let permut xs =
     else
       let nn, ni = n / len, n mod len in
       List.nth xs ni ::
-      select ni (len - 1) (List.filteri (fun i _ -> i <> ni) xs)
+      select nn (len - 1) (List.filteri (fun i _ -> i <> ni) xs)
   in
   Seq.unfold (fun i -> if i < fn then Some (select i len xs, i+1) else None) 0
 

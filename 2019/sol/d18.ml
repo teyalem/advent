@@ -43,7 +43,7 @@ struct
 
   let data_id = '_', 0, C.empty
 
-  let is_end m ((x, y), (t, d, _)) =
+  let is_end _ (_, (t, d, _)) =
     d <> 0 && is_lowercase t || t = '@'
 
   let neighbors m (pos, (_, d, doors)) =
@@ -60,12 +60,13 @@ end
 type graph = (char, (char * int * C.t) list) Hashtbl.t
 
 let make_graph f map =
+  let module IP = struct type t = int * int let compare = Stdlib.compare end in
   let entrances = Map.find_all f map
   and keys = Map.find_all is_lowercase map in
   entrances @ keys
   |> List.map (fun (x, y) ->
       Map.get map x y,
-      Pathfind.bfs_collect (module K) ~start: (x, y) map)
+      Pathfind.bfs_collect (module IP) (module K) ~start: (x, y) map)
   |> List.to_seq
   |> Hashtbl.of_seq
 
@@ -84,12 +85,12 @@ struct
 
   let data_id = []
 
-  let is_end g ((_, ks), _) =
+  let is_end _ ((_, ks), _) =
     C.equal ks !all_keys
 
   let neighbors g ((k, ks), pos) =
     Hashtbl.find g k
-    |> List.filter (fun (c, _, ds) ->
+    |> List.filter (fun (_, _, ds) ->
         C.(subset (map Char.lowercase_ascii ds) ks))
     |> List.map (fun (c, d, _) ->
         let ks = if is_lowercase c then C.add c ks else ks in
@@ -107,7 +108,7 @@ let find_way_p1 graph =
   end
   in
   let module S = Set.Make(State) in
-  let q = ref @@ P.create () in
+  let q = ref @@ P.empty in
   let visited = ref S.empty in
   let add (w, st, ps) = q := P.insert w (st, ps) !q in
   let rec next () =
@@ -127,7 +128,7 @@ let find_way_p1 graph =
       aux @@ next ()
     end
   in
-  let w, ps = aux (0, '@', C.empty, []) in
+  let w, _ = aux (0, '@', C.empty, []) in
   w
 
 module G2 : Pathfind.WeightedGraph
@@ -143,14 +144,14 @@ struct
 
   let data_id = []
 
-  let is_end g ((_, ks), _) =
+  let is_end _ ((_, ks), _) =
     C.equal ks !all_keys
 
   let neighbors g ((ps, ks), ms) =
     ps
     |> List.mapi (fun i k ->
         Hashtbl.find g k
-        |> List.filter (fun (c, _, ds) ->
+        |> List.filter (fun (_, _, ds) ->
             C.(subset (map Char.lowercase_ascii ds) ks))
         |> List.map (fun (c, d, _) ->
             let ks = if is_lowercase c then C.add c ks else ks in
@@ -171,7 +172,7 @@ let find_way_p2 graph =
   end
   in
   let module S = Set.Make(State) in
-  let q = ref @@ P.create () in
+  let q = ref @@ P.empty in
   let visited = ref S.empty in
   let add (w, st, ps) = q := P.insert w (st, ps) !q in
   let rec next () =
@@ -191,7 +192,7 @@ let find_way_p2 graph =
       aux @@ next ()
     end
   in
-  let w, ps = aux (0, ['1'; '2'; '3'; '4'], C.empty, []) in
+  let w, _ = aux (0, ['1'; '2'; '3'; '4'], C.empty, []) in
   w
 
 let modify map =

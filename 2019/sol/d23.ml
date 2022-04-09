@@ -16,12 +16,13 @@ module Packet = struct
     Printf.printf "packet: to %d (%d, %d)\n" p.addr p.x p.y
 
   let get_packet m =
-    if IntCode.is_output_empty m
+    let open IntCode in
+    if is_output_empty m
     then None
     else
-      let addr = IntCode.get_output m in
-      let x = IntCode.get_output m in
-      let y = IntCode.get_output m in
+      let addr = pop_output m in
+      let x = pop_output m in
+      let y = pop_output m in
       Some (make addr x y)
 
   let rec get_packets m =
@@ -32,8 +33,8 @@ module Packet = struct
 
   let send p m =
     let open IntCode in
-    set_input m p.x;
-    set_input m p.y;
+    push_input m p.x;
+    push_input m p.y;
 
 end
 
@@ -49,7 +50,7 @@ module Network = struct
   let init code =
     Array.init 50 (fun i ->
         let m = IntCode.load code in
-        IntCode.set_input m i;
+        IntCode.push_input m i;
         m)
     |> make
 
@@ -71,7 +72,7 @@ module Network = struct
     for i = 0 to Array.length net.machines - 1 do
       let q = net.queues.(i) in
       if Queue.is_empty q
-      then IntCode.set_input net.machines.(i) ~-1
+      then IntCode.push_input net.machines.(i) ~-1
       else begin
         idle := false;
         Queue.iter (fun p ->
@@ -111,8 +112,8 @@ module Network = struct
 
 end
 
-let main path =
-  let data = open_in path |> IO.read_file |> IntCode.parse_code in
+let () =
+  let data = IO.read_all () |> IntCode.parse_code in
   begin
     (* PART 1 *)
     let net = Network.init data in
@@ -125,5 +126,3 @@ let main path =
     Network.run_cont net |> print_int;
 
   end
-
-let () = Arg.parse [] main ""

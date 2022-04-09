@@ -105,7 +105,7 @@ struct
 
   let data_id = "", Outer, -1
 
-  let is_end map (_, (p, _, d)) =
+  let is_end _ (_, (p, _, d)) =
     p <> "" && d <> 0
 
   let neighbors map (p, (_, _, d)) =

@@ -10,8 +10,8 @@ let sum_needed_fuel mass =
   in
   sum @@ loop @@ needed_fuel mass
 
-let main path =
-  let data = open_in path |> IO.read_lines |> List.map int_of_string in
+let () =
+  let data = IO.read_lines () |> List.map int_of_string in
   begin
     (* PART 1 *)
     List.map needed_fuel data |> sum |> print_int;
@@ -21,5 +21,3 @@ let main path =
     (* PART 2 *)
     List.map sum_needed_fuel data |> sum |> print_int;
   end
-
-let () = Arg.parse [] main ""

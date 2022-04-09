@@ -81,7 +81,7 @@ module Deck = struct
 end
 
 let mod_inv n modn =
-  pow_mod n (modn-2) modn
+  Math.pow_mod n (modn-2) modn
 
 module Tracker = struct
   type t = { size: int;
@@ -119,7 +119,7 @@ module Tracker = struct
     List.fold_left perform t deals
 
   let repeat t i =
-    let inc = pow_mod t.inc i t.size in
+    let inc = Math.pow_mod t.inc i t.size in
     let offset = t.offset * (1 - inc) * mod_inv ((1 - t.inc) mod t.size) t.size in
     update t (offset mod t.size) inc
 
@@ -128,8 +128,8 @@ module Tracker = struct
 
 end
 
-let main path =
-  let data = open_in path |> IO.read_lines |> List.map Deal.parse in
+let () =
+  let data = IO.read_lines () |> List.map Deal.parse in
   begin
     (* PART 1 *)
     let deck = Deck.perform_deals (Deck.init ()) data in
@@ -146,5 +146,3 @@ let main path =
     let t = Tracker.repeat t 101741582076661 in
     Tracker.index t 2020 |> print_int
   end
-
-let () = Arg.parse [] main ""

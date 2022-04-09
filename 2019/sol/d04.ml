@@ -37,14 +37,14 @@ let has_two_adj dl =
   |> List.exists (fun (_, c) -> c = 2)
 
 let count_passwords f s e =
-  Range.make s e
-  |> Range.to_seq
+  Seq.ints s
+  |> Seq.take (e-s)
   |> Seq.map to_digitlist
   |> Seq.filter f
   |> List.of_seq
   |> List.length
 
-let main _ =
+let () =
   let s, e = 265275, 781584 in
   begin
     (* PART 1 *)
@@ -60,5 +60,3 @@ let main _ =
     |> print_int
 
   end
-
-let () = main ""

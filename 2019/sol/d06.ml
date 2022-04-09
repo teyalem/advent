@@ -95,8 +95,8 @@ module OrbitGraph = struct
 
 end
 
-let main path =
-  let data = open_in path |> IO.read_lines |> OrbitGraph.parse in
+let () =
+  let data = IO.read_lines () |> OrbitGraph.parse in
   begin
     (* PART 1 *)
     OrbitGraph.count_orbits "COM" data |> print_int;
@@ -110,5 +110,3 @@ let main path =
     path_len - 2 |> print_int
     
   end
-
-let () = Arg.parse [] main ""

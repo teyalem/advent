@@ -51,6 +51,9 @@ module Moon = struct
   let position m = m.position
   let velocity m = m.velocity
 
+  let copy { position; velocity } =
+    { position; velocity }
+
   let apply_velocity m =
     m.position <- Vec3D.add m.position m.velocity
 
@@ -108,11 +111,11 @@ let find_loop first_pl =
   let pvl = List.map (fun p -> { p = p; v = 0 }) first_pl in
   loop 1 first_pl pvl
 
-let main path =
-  let data () = open_in path |> IO.read_lines |> List.map Moon.parse in
+let () =
+  let data = IO.read_lines () |> List.map Moon.parse in
   begin
     (* PART 1 *)
-    let moons = data () in
+    let moons = List.map Moon.copy data in
     for _ = 1 to 1000 do
       unique_pairs moons
       |> List.iter (fun (a, b) -> Moon.apply_gravity a b);
@@ -124,7 +127,7 @@ let main path =
     print_newline ();
 
     (* PART 2 *)
-    let moons = data () in
+    let moons = data in
     let xpl, ypl, zpl =
       List.map (fun m -> Moon.position m) moons
       |> List.map (fun p -> let open Vec3D in x p, y p, z p)
@@ -141,5 +144,3 @@ let main path =
     |> print_int
 
   end
-
-let _ = Arg.parse [] main ""

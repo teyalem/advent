@@ -1,8 +1,6 @@
 open Ut
 
-let neighs_delta = [ 0, -1; 0, 1; -1, 0; 1, 0 ]
-let neigh pos =
-  List.map (fun dpos -> Coord.add pos dpos) neighs_delta
+let neigh = Neigh.(neighbors von_neumann)
 
 module Tile = struct
   type t = char
@@ -44,7 +42,10 @@ module Map = struct
         0 -> [now]
       | 1 -> now :: move now (List.hd scaffold)
       | _ -> (* cross *)
-        let next = Coord.(add now (sub now prev)) in
+        let next =
+          let nx, ny = now and px, py = prev in
+          nx + nx - px, ny + ny - py
+        in
         now :: move now next
     in
     move (0, 0) pos
@@ -66,8 +67,8 @@ let diff a b =
   else b - a
 
 let path_to_coms path =
-  List.fold_left (fun (p, d, coms) n ->
-      let dir = to_dir @@ Coord.sub n p in
+  List.fold_left (fun ((px, py), d, coms) (nx, ny as n) ->
+      let dir = to_dir (nx - px, ny - py) in
       match diff d dir with
        -1 -> n, dir, "F"::"L"::coms
       | 0 -> n, dir, "F"::coms
@@ -102,8 +103,8 @@ let make_code map =
   |> List.iter (Printf.printf " %s");
   print_newline ()
 
-let main path =
-  let data = open_in path |> IO.read_file |> IntCode.parse_code in
+let () =
+  let data = IO.read_all () |> IntCode.parse_code in
   begin
     (* PART 1 *)
     let m = IntCode.load data in
@@ -113,7 +114,7 @@ let main path =
       Seq.unfold (fun m ->
           if IntCode.is_output_empty m
           then None
-          else Some (char_of_int @@ IntCode.get_output m, m)) m
+          else Some (char_of_int @@ IntCode.pop_output m, m)) m
       |> String.of_seq
       |> Delim.split_line
       |> Map.parse
@@ -125,7 +126,7 @@ let main path =
 
     (* PART 2 *)
     let m = IntCode.load data in
-    IntCode.set m 0 2; (* wake up vaccum machine *)
+    IntCode.poke m 0 2; (* wake up vaccum machine *)
     IntCode.run m;
 
     let main = "A,B,A,C,B,C,B,C,A,C\n" in
@@ -139,12 +140,12 @@ let main path =
         s |> String.iter (fun c ->
             IntCode.print_output m;
             print_char c;
-            IntCode.set_input m @@ int_of_char c;
+            IntCode.push_input m @@ int_of_char c;
             IntCode.run m));
 
     let dust = ref 0 in
     try while not @@ IntCode.is_output_empty m do
-      let c = IntCode.get_output m in
+      let c = IntCode.pop_output m in
       if c < 127
       then print_char @@ char_of_int c
       else begin
@@ -154,5 +155,3 @@ let main path =
     done with Exit -> Printf.printf "%d\n" !dust
 
   end
-
-let () = Arg.parse [] main ""

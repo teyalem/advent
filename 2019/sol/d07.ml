@@ -14,15 +14,15 @@ let rec combi l =
 
 let prepare data l =
   let ms = List.init 5 (fun _ -> IntCode.load data) in
-  List.iter2 (fun m i -> IntCode.set_input m i; IntCode.run m) ms l;
+  List.iter2 (fun m i -> IntCode.(push_input m i; run m)) ms l;
   ms
 
 let run_conf input ms =
   List.fold_left
     (fun prev m ->
-       IntCode.set_input m prev;
-       IntCode.run m;
-       IntCode.get_output m)
+       IntCode.(push_input m prev;
+                run m;
+                pop_output m))
     input
     ms
 
@@ -32,8 +32,8 @@ let rec run_conf_rec input ms =
   then output
   else run_conf_rec output ms
 
-let main path =
-  let data = open_in path |> IO.read_file |> IntCode.parse_code in
+let () =
+  let data = IO.read_all () |> IntCode.parse_code in
   begin
     (* PART 1 *)
     combi [0; 1; 2; 3; 4]
@@ -49,5 +49,3 @@ let main path =
     |> List.fold_left max min_int
     |> print_int
   end
-
-let () = Arg.parse [] main ""

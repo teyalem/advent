@@ -38,12 +38,11 @@ module Pos = struct
 end
 
 module Eris = struct
-  module B = Block.Make(Tile)
-  module Board = BlockBoard.Make(B)
+  module B = BlockBoard.Make(Tile)
 
   include B
-  include Board
-  include CellularAutomata.Make(Board)(Pos)(Tile)
+
+  let next_state = CellularAutomata.make_automata (module B)
 
   let find_dup map =
     let rec loop ms m =
@@ -56,7 +55,7 @@ module Eris = struct
 
   let biodiversity_rating map =
     let rs = ref [] in
-    iteri (fun x y c ->
+    iteri (fun (x, y) c ->
         if c = Bug
         then rs := (x, y) :: !rs
         else ()) map;
@@ -100,19 +99,19 @@ module InfEris = struct
 
   let is_outer p = not @@ is_inner p
 
-  let get_neighs infmap level pos =
+  let get_neighs infmap level (x, y) =
     let map = infmap.(level)
     and outer_map = try infmap.(level-1) with _ -> make 5 5
     and inner_map = try infmap.(level+1) with _ -> make 5 5
     in
     let mid = dimx map / 2, dimy map / 2 in
-    List.map2 (fun f dp ->
-        let p = Coord.add pos dp in
+    List.map2 (fun f (dx, dy) ->
+        let p = x+dx, y+dy in
         if p = mid
         then f inner_map
         else if is_outer p
-        then [ Option.value ~default: Tile.default @@ get_cell outer_map (Coord.add (2, 2) dp) ]
-        else [ Option.value ~default: Tile.default @@ get_cell map p ])
+        then [ Option.value ~default: Tile.default @@ get outer_map (dx+2, dy+2)]
+        else [ Option.value ~default: Tile.default @@ get map p ])
       sides
       Pos.ps
     |> List.concat
@@ -137,11 +136,11 @@ module InfEris = struct
     in
 
     for i = 0 to Array.length infmap - 1 do
-      iteri_cell (collect_update i) infmap.(i)
+      iteri (collect_update i) infmap.(i)
     done;
 
     (* Perform Update *)
-    List.iter (fun (i, pos, elt) -> set_cell infmap.(i) pos elt) !updates
+    List.iter (fun (i, pos, elt) -> set infmap.(i) pos elt) !updates
   end
 
   let count_occur elt infmap =
@@ -157,8 +156,8 @@ module InfEris = struct
 
 end
 
-let main path =
-  let data = open_in path |> IO.read_lines |> Eris.parse in
+let () =
+  let data = IO.read_lines () |> Eris.parse in
   begin
     (* PART 1 *)
     let dup = Eris.find_dup data in
@@ -175,5 +174,3 @@ let main path =
     InfEris.count_occur Tile.Bug infmap |> print_int
 
   end
-
-let () = Arg.parse [] main ""
