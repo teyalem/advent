@@ -1,5 +1,25 @@
 open Ut
 
+module B = struct
+  type t = int ref
+
+  let get bs i = (!bs lsr i) land 0x1
+
+  let set bs i n =
+    if n = 0 || n = 1 then
+      let mask = 0x1 lsl i in
+      bs := (if n = 0
+             then !bs land lnot mask
+             else !bs lor mask)
+    else
+      invalid_arg "B.set"
+
+  let copy bs = ref !bs
+
+  let of_int = ref
+  let to_int = (!)
+end
+
 (* Codes of docking program *)
 module Code = struct
   type t = Mask of (int * int) list
@@ -48,12 +68,12 @@ let apply_mask mask n =
     | (i, n) :: mask ->
       begin
         if n = -1 then ()
-        else Bitarray.set bits i n;
+        else B.set bits i n;
       end;
       inner bits mask
   in
-  let bits = Bitarray.of_int n in
-  inner bits mask |> Bitarray.to_int
+  let bits = B.of_int n in
+  inner bits mask |> B.to_int
 
 (* code runner of PART 1 *)
 let run_1 mem code =
@@ -74,20 +94,20 @@ let apply_mask_2 mask idx =
     | (i, n) :: mask -> begin
         match n with
         | -1 ->
-          let os = List.map Bitarray.copy bsl in
-          List.iter (fun bs -> Bitarray.set bs i 0) os;
-          List.iter (fun bs -> Bitarray.set bs i 1) bsl;
+          let os = List.map B.copy bsl in
+          List.iter (fun bs -> B.set bs i 0) os;
+          List.iter (fun bs -> B.set bs i 1) bsl;
           inner (os @ bsl) mask
         | 0 -> inner bsl mask
         | 1 ->
-          List.iter (fun bs -> Bitarray.set bs i 1) bsl;
+          List.iter (fun bs -> B.set bs i 1) bsl;
           inner bsl mask
         | _ -> assert false
       end
   in
-  let bs = Bitarray.of_int idx in
+  let bs = B.of_int idx in
   inner [bs] mask
-  |> List.map Bitarray.to_int
+  |> List.map B.to_int
 
 (* code runner of PART 2 *)
 let run_2 mem code =
