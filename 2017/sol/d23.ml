@@ -1,12 +1,6 @@
 open Ut
 
-type vm = {
-  regs: (reg, int) Hashtbl.t;
-  mutable ip: int;
-  prog: inst array;
-}
-
-and reg = string
+type reg = string
 
 and inst =
   | Set of reg * value
@@ -29,44 +23,12 @@ let parse str =
       | "jnz" -> Jnz (pv x, pv y)
       | _ -> assert false)
 
-let make_vm prog =
-  { regs = Hashtbl.create 100;
-    ip = 0;
-    prog; }
+let pull_data = function
+  | Set ("b", Int n) :: _ -> n
+  | _ -> assert false
 
-let get_value { regs; _ } = function
-  | Reg r -> Hashtbl.find_opt regs r |> Option.value ~default: 0
-  | Int n -> n
-
-let set vm r v =
-  Hashtbl.replace vm.regs r v
-
-let tick vm n =
-  vm.ip <- vm.ip + n
-
-let step cnt vm =
-  let get = get_value vm
-  and reg r = get_value vm (Reg r)
-  and set = set vm
-  and tick = tick vm in
-  function
-  | Set (r, v) -> set r @@ get v; tick 1
-  | Sub (r, v) -> set r @@ reg r - get v; tick 1
-  | Mul (r, v) -> incr cnt; set r @@ reg r * get v; tick 1
-  | Jnz (v, offset) -> if get v <> 0 then vm.ip <- vm.ip + get offset else tick 1
-
-let part1 prog =
-  let vm = make_vm prog in
-  let cnt = ref 0 in
-  let f = step cnt vm in
-  let rec aux () =
-    if vm.ip < Array.length vm.prog then begin
-      f vm.prog.(vm.ip);
-      aux ()
-    end
-  in
-  aux ();
-  !cnt
+let part1 n =
+  (n - 2) * (n - 2)
 
 let is_prime n =
   let rec aux i =
@@ -76,11 +38,6 @@ let is_prime n =
   in
   aux 2
 
-let pull_data prog =
-  match prog.(0) with
-  | Set ("b", Int n) -> n
-  | _ -> assert false
-
 let part2 n =
   let b = n * 100 + 100_000 in
   Seq.init 1001 (fun i -> b + 17 * i)
@@ -88,7 +45,7 @@ let part2 n =
   |> Seq.length
 
 let () =
-  let data = IO.read_lines () |> List.map parse |> Array.of_list in
+  let data = IO.read_lines () |> List.map parse |> pull_data in
   (* PART 1 *) part1 data |> print_int;
   print_newline ();
-  (* PART 2 *) pull_data data |> part2 |> print_int;
+  (* PART 2 *) part2 data |> print_int;
