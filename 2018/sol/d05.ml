@@ -4,26 +4,13 @@ let opposite a b =
   unit_type a = unit_type b
   && abs Char.(code a - code b) = 32 (* Am I right? *)
 
-let react cs =
-  let rec aux = function
-    | [] -> 0, []
-    | [a] -> 0, [a]
-    | a::b::cs ->
-      if opposite a b then
-        let cnt, cs = aux cs in
-        cnt + 1, cs
-      else
-        let cnt, cs = aux (b::cs) in
-        cnt, a::cs
-  in
-  aux cs
-
 let full_react cs =
-  let rec aux cs =
-    let cnt, cs = react cs in
-    if cnt = 0 then cs else aux cs
-  in
-  aux cs
+  List.fold_left (function
+      | [] -> fun c -> [c]
+      | p::ps -> fun c -> if opposite p c then ps else c::p::ps)
+    []
+    cs
+  |> List.rev
 
 let shortest_polylen cs =
   Seq.init 26 (fun i -> Char.(chr @@ code 'a' + i)) (* a..z *)
