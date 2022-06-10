@@ -16,21 +16,6 @@ let finish (m : S.t M.t) (e : char) =
   |> M.partition (fun _ s -> S.is_empty s)
   |> (fun (fs, xs) -> M.to_seq fs |> Seq.map fst |> S.of_seq, xs)
 
-let complete_order m =
-  let rec aux cs q m =
-    if M.is_empty m then List.rev cs @ S.elements q
-    else
-      let e = S.min_elt q in
-      let fin, rest = finish m e in
-      aux (e::cs) (S.remove e q |> S.union fin) rest
-  in
-  let fin, rest = finish m '_' in
-  aux [] fin rest
-  |> List.to_seq
-  |> String.of_seq
-
-let worktime c = 60 + Char.(code c - code 'A' + 1)
-
 let of_graph m =
   let q, m = finish m '_' in
   q, m
@@ -44,6 +29,18 @@ let pop (q, m) =
 let finish_job j (q, m) =
   let fin, m = finish m j in
   S.union q fin, m
+
+let complete_order m =
+  of_graph m
+  |> Seq.unfold (fun q ->
+      if is_job_avail q then
+        let e, q = pop q in
+        let q = finish_job e q in
+        Some (e, q)
+      else None)
+  |> String.of_seq
+
+let worktime c = 60 + Char.(code c - code 'A' + 1)
 
 let add_worker t j ws =
   (t + worktime j, j) :: ws
@@ -76,11 +73,7 @@ let parse str =
   Scanf.sscanf str "Step %c must be finished before step %c can begin."
     (fun a b -> b, a)
 
-let () = Printexc.record_backtrace true
 let () =
   let data = IO.read_lines () |> List.map parse |> collect in
-  (* PART 1 *)
-  complete_order data |> print_endline;
-
-  (* PART 2 *)
-  multiworker data |> print_int;
+  (* PART 1 *) complete_order data |> print_endline;
+  (* PART 2 *) multiworker data |> print_int;
