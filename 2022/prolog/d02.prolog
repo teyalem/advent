@@ -1,3 +1,18 @@
+:- module(d02, [main/0]).
+:- use_module(io).
+
+% parsing
+
+shape1(rock) --> "A".
+shape1(paper) --> "B".
+shape1(scissors) --> "C".
+
+shape2(x) --> "X".
+shape2(y) --> "Y".
+shape2(z) --> "Z".
+
+pair(A, B) --> shape1(A), " ", shape2(B).
+
 % A wins B
 rps(rock, scissors).
 rps(scissors, paper).
@@ -20,33 +35,10 @@ score1((A, B), Score) :-
     ).
 
 score2((A, B), Score) :-
-    (B = x, rps(W, A), shape_score(W, S), Score is 6 + S
-    ;B = y, shape_score(A, S), Score is 3 + S
-    ;B = z, rps(A, L), shape_score(L, Score)
+    ( B = x, rps(A, L), shape_score(L, Score) % lose
+    ; B = y, shape_score(A, S), Score is 3 + S % draw
+    ; B = z, rps(W, A), shape_score(W, S), Score is 6 + S % win
     ).
-
-% io
-
-file_lines(File, Lines) :-
-    setup_call_cleanup(open(File, read, In),
-        stream_lines(In, Lines),
-        close(In)).
-
-stream_lines(In, Lines) :-
-    read_string(In, _, Str),
-    split_string(Str, "\n", "", Lines).
-
-% parsing
-
-shape1(rock) --> "A".
-shape1(paper) --> "B".
-shape1(scissors) --> "C".
-
-shape2(x) --> "X".
-shape2(y) --> "Y".
-shape2(z) --> "Z".
-
-pair(A, B) --> shape1(A), " ", shape2(B).
 
 solve(Fun, Data, Score) :-
     maplist(Fun, Data, Result),
@@ -56,9 +48,20 @@ parse(S, Out) :-
     phrase(pair(A, B), S, []),
     Out = (A, B).
 
-main(Lines) :-
-    file_lines("input/d02", Lines),
+load(Data) :-
+    file_lines("../input/d02", Lines),
     maplist(atom_codes, Lines, Codes),
-    maplist(parse, Codes, Data),
+    maplist(parse, Codes, Data).
+
+part1(Data) :-
     solve(score1, Data, Score),
     writeln(Score).
+
+part2(Data) :-
+    solve(score2, Data, Score),
+    writeln(Score).
+
+main :-
+    load(Data),
+    part1(Data),
+    part2(Data).
