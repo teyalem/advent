@@ -8,5 +8,5 @@ file_lines(File, Lines) :-
 
 stream_lines(In, Lines) :-
     read_string(In, _, Str),
-    split_string(Str, "\n", "\n", Lines).
-
+    split_string(Str, "\n", "", L),
+    (last(L, "") -> append(Lines, [""], L) ; Lines = L).
