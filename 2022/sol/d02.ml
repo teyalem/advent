@@ -24,10 +24,11 @@ let lose_shape = function
   | S -> P
   | P -> R
 
-let score1 = function
-  | a, b when b = win_shape a -> 6 + shape_score b
-  | a, b when a = b -> 3 + shape_score b
-  | _, b -> shape_score b
+let score1 (a, b) =
+  let s = shape_score b in
+  if b = win_shape a then 6 + s
+  else if a = b then 3 + s
+  else s
 
 let score2 (a, action) =
   match action with
