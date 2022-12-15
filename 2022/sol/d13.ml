@@ -60,11 +60,6 @@ module Packet = struct
       else c
 end
 
-let divider_packets = [
-  "[[2]]";
-  "[[6]]";
-] |> List.map Packet.parse
-
 let () =
   let data =
     open_in Sys.argv.(1)
@@ -83,10 +78,10 @@ let () =
 
   (* PART 2 *)
   let packets = data |> List.map (fun (a, b) -> [a; b]) |> List.concat in
-  divider_packets @ packets
-  |> List.sort Packet.compare
-  |> List.mapi (fun i p -> i+1, p)
-  |> List.filter_map (fun (i, p) ->
-      if List.mem p divider_packets then Some i else None)
-  |> List.fold_left Int.mul 1
-  |> print_int
+  let a = Packet.parse "[[2]]"
+  and b = Packet.parse "[[6]]" in
+  let f n =
+    List.filter (fun p -> Packet.compare p n < 0) packets
+    |> List.length
+  in
+  print_int @@ (f a + 1) * (f b + 2)
