@@ -50,8 +50,8 @@ let () =
   let beacons =
     data
     |> List.filter_map (fun (_, (bx, by)) ->
-        if by = ty then Some (bx, bx) else None)
-    |> List.sort_uniq pair_compare
+        if by = ty then Some bx else None)
+    |> List.sort_uniq Int.compare
   in
 
   let ranges = List.filter_map (nobeacon_at ty) sensors in
